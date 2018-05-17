@@ -27,7 +27,7 @@
 body, html {
   background: #133b7a;
   color: #bec5d1;
-  font-family: 'Muli', sans-serif;
+  font-family: 'Inconsolata', monospace;
   text-align: center;
   user-select: none;
 }
