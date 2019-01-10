@@ -16,7 +16,7 @@ class Color {
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
-		this.alpha = 1;
+		this.alpha = alpha;
 	}
 
 	/**
@@ -56,7 +56,7 @@ class Utils {
 	 * @return {string[]} An array of shades of blue.
 	 */
 	static get blueShades() {
-		return [new Color(66, 146, 198, 0.4), new Color(33, 113, 181, 0.4), new Color(8, 81, 156, 0.4), new Color(8, 48, 107, 0.4), new Color(8, 48, 107, 0.4)];
+		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1), new Color(8, 48, 107, 1)];
 	}
 }
 
