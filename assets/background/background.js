@@ -1,276 +1,327 @@
 'use strict';
-var canvas;
-var ctx;
-var elements;
-var blocks = [];
-var balls = [];
-var waves = [];
 var DEBUG = false;
-var blueShades = ['66,146,198', '33,113,181', '8,81,156', '8,48,107', '8,48,107'];
 
-function getElementBounds() {
-    let result = [];
-    var name1 = document.getElementById('name').getBoundingClientRect();
-    result.push({
-        left: name1.left + 4,
-        top: name1.top + 15,
-        right: name1.right,
-        bottom: name1.bottom - 15
-    });
-    result.push(document.getElementsByTagName('span')[0].getBoundingClientRect());
-    for (let a of document.getElementsByTagName('a')) {
-        result.push(a.getBoundingClientRect());
-    }
-    return result;
+class Utils {
+	static clamp(a, b, c) {
+		return Math.min(Math.max(a, b), c);
+	}
+
+	static get blueShades() {
+		return ['66,146,198', '33,113,181', '8,81,156', '8,48,107', '8,48,107'];
+	}
 }
 
-function onWindowResize() {
-    var newWidth = Math.floor(document.documentElement.clientWidth) - 1;
-    var newHeight = Math.floor(document.documentElement.clientHeight) - 1;
-    canvas.setAttribute('width', newWidth);
-    canvas.setAttribute('height', newHeight);
-    elements = getElementBounds();
-    elements.push({
-        left: 0,
-        top: -10,
-        right: newWidth,
-        bottom: 0
-    });
-    elements.push({
-        left: 0,
-        top: newHeight,
-        right: newWidth,
-        bottom: newHeight + 10
-    });
-    elements.push({
-        left: -10,
-        top: 0,
-        right: 0,
-        bottom: newHeight
-    });
-    elements.push({
-        left: newWidth,
-        top: 0,
-        right: newWidth + 10,
-        bottom: newHeight
-    });
+class Rectangle {
+	constructor(left, top, right, bottom) {
+		this.left = left;
+		this.top = top;
+		this.right = right;
+		this.bottom = bottom;
+	}
+
+	draw(drawContext) {
+		drawContext.strokeStyle = "#FF0000";
+		drawContext.strokeRect(this.left, this.top, this.right - this.left, this.bottom - this.top);
+	}
 }
 
-document.addEventListener('DOMContentLoaded', function(event) {
-    canvas = document.getElementById('background');
-    ctx = canvas.getContext('2d');
+class DOMInterface {
+	static get screenWidth() {
+		return document.documentElement.clientWidth;
+	}
 
-    var throttle = function(type, name, obj) {
-        obj = obj || window;
-        var running = false;
-        var func = function() {
-            if (running) {
-                return;
-            }
-            running = true;
-            requestAnimationFrame(function() {
-                obj.dispatchEvent(new CustomEvent(name));
-                running = false;
-            });
-        };
-        obj.addEventListener(type, func);
-    };
+	static get screenHeight() {
+		return document.documentElement.clientHeight;
+	}
 
-    throttle('resize', 'optimizedResize');
-    window.addEventListener('optimizedResize', onWindowResize);
-    onWindowResize();
-    setTimeout(onWindowResize, 100);
+	static get adjustedScreenWidth() {
+		return Math.floor(DOMInterface.screenWidth) - 1;
+	}
 
-    for (var i = 0; i < (window.innerWidth <= 800 ? 2 : 10); i++) {
-        var w = Math.floor(3 * Math.random() * 20) + 20;
-        var ball = {
-            w: w,
-            x: Math.floor(Math.random() * document.documentElement.clientWidth - w),
-            y: Math.floor(Math.random() * document.documentElement.clientHeight - w),
-            dx: (Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
-            dy: (Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
-            color: 'rgba(' + blueShades[Math.floor(Math.random() * blueShades.length)] + ',0.4)',
-            collides: 0
-        };
+	static get adjustedScreenHeight() {
+		return Math.floor(DOMInterface.screenHeight) - 1;
+	}
 
-        while (detectCollisions(ball, elements, balls))
-            randomizeBallPos(ball);
+	static queueNextFrame(callback) {
+		window.requestAnimationFrame(callback);
+	}
 
-        balls.push(ball);
-    }
+	static registerResizeListener(callback) {
+		window.addEventListener('resize', callback);
+	}
 
-    draw();
-});
+	static findTextRectangles() {
+		let rectangles = [];
 
-function randomizeBallPos(ball) {
-    ball.x = Math.floor(Math.random() * document.documentElement.clientWidth - ball.w);
-    ball.y = Math.floor(Math.random() * document.documentElement.clientHeight - ball.w);
+		let nameRect = document.getElementById('name').getBoundingClientRect();
+		rectangles.push(new Rectangle(
+			nameRect.left + 4,
+			nameRect.top + 15,
+			nameRect.right,
+			nameRect.bottom - 15
+		));
+
+		rectangles.push(this.DOMRectToRecangle(document.getElementsByTagName('span')[0].getBoundingClientRect()));
+
+		for (let anchor of document.getElementsByTagName('a')) {
+			rectangles.push(this.DOMRectToRecangle(anchor.getBoundingClientRect()));
+		}
+
+		return rectangles;
+	}
+
+	static DOMRectToRecangle(DOMRect) {
+		return new Rectangle(DOMRect.left, DOMRect.top, DOMRect.right, DOMRect.bottom);
+	}
 }
 
-function moveBall(ball, which, back) {
-    if (back)
-        ball[which] -= 1 * ball['d' + which];
-    else
-        ball[which] += 1 * ball['d' + which];
+class Drawable {
+	constructor(width, xPos, yPos, color) {
+		this.width = width;
+		this.xPos = xPos;
+		this.yPos = yPos;
+		this.color = color;
+	}
 }
 
-function clamp(a, b, c) {
-    return Math.min(Math.max(a, b), c);
+class Wave extends Drawable {
+	constructor(width, xPos, yPos, color) {
+		super(width, xPos, yPos, color);
+		this.originalWidth = width;
+	}
+
+	draw(drawContext) {
+		drawContext.beginPath();
+		drawContext.strokeStyle = this.color;
+		drawContext.arc(this.xPos, this.yPos, this.width, 0, 2 * Math.PI);
+		drawContext.stroke();
+	}
 }
 
-function ballEdgeCollision(ball, block) {
-    var closestX = clamp(ball.x + (ball.w / 2), block.left, block.right);
-    var closestY = clamp(ball.y + (ball.w / 2), block.top, block.bottom);
-
-    var distanceX = ball.x + (ball.w / 2) - closestX;
-    var distanceY = ball.y + (ball.w / 2) - closestY;
-
-    var distanceSquared = Math.pow(distanceX, 2) + Math.pow(distanceY, 2);
-    return distanceSquared < Math.pow(ball.w / 2, 2);
+class CollideInfo {
+	constructor(xCollision, yCollision) {
+		this.xCollision = xCollision;
+		this.yCollision = yCollision;
+	}
 }
 
-function ballBallCollision(ball, ball2) {
-    return Math.hypot(ball.x + (ball.w / 2) - ball2.x - (ball2.w / 2), ball.y + (ball.w / 2) - ball2.y - (ball2.w / 2)) <= ball.w / 2 + ball2.w / 2;
+class Ball extends Drawable {
+	constructor(width, xPos, yPos, xVel, yVel, color) {
+		super(width, xPos, yPos, color);
+		this.xVel = xVel;
+		this.yVel = yVel;
+		this.collides = 0;
+	}
+
+	randomizePos() {
+		this.xPos = Math.floor(Math.random() * DOMInterface.screenWidth - this.width);
+		this.yPos = Math.floor(Math.random() * DOMInterface.screenHeight - this.width);
+	}
+
+	move(direction, backwards = false) {
+		if (direction == 'x')
+			this.xPos += (backwards ? -1 : 1) * this.xVel;
+		else if (direction == 'y')
+			this.yPos += (backwards ? -1 : 1) * this.yVel;
+	}
+
+	collidesWithImpl(method, elements) {
+		let collisionX = false;
+		let collisionY = false;
+
+		for (let element of elements) {
+			if (element == this)
+				continue;
+			this.move('x');
+			collisionX = method(element);
+			this.move('x', true);
+			this.move('y');
+			collisionY = method(element);
+			this.move('y', true);
+
+			if (collisionX || collisionY) {
+				return new CollideInfo(collisionX, collisionY);
+			}
+		}
+
+		return null;
+	}
+
+	collidesWith(rectangles, balls) {
+		let collision = this.collidesWithImpl(this.collidesWithRect.bind(this), rectangles) ||
+			this.collidesWithImpl(this.collidesWithBall.bind(this), balls);
+
+		this.handleCollision(collision);
+
+		return collision;
+	}
+
+	handleCollision(collision) {
+		if (collision == null) {
+			this.collides = 0;
+			return;
+		}
+
+		if (collision.xCollision) {
+			this.xVel *= -1;
+		}
+
+		if (collision.yCollision) {
+			this.yVel *= -1;
+		}
+
+		this.collides++;
+	}
+
+	collidesWithRect(rectangle) {
+		let closestX = Utils.clamp(this.xPos + (this.width / 2), rectangle.left, rectangle.right);
+		let closestY = Utils.clamp(this.yPos + (this.width / 2), rectangle.top, rectangle.bottom);
+
+		let distanceX = this.xPos + (this.width / 2) - closestX;
+		let distanceY = this.yPos + (this.width / 2) - closestY;
+
+		let distanceSquared = Math.pow(distanceX, 2) + Math.pow(distanceY, 2);
+		return distanceSquared < Math.pow(this.width / 2, 2);
+	}
+
+	collidesWithBall(ball) {
+		return Math.hypot(this.xPos + (this.width / 2) - ball.xPos - (ball.width / 2), this.yPos + (this.width / 2) - ball.yPos - (ball.width / 2)) <= this.width / 2 + ball.width / 2;
+	}
+
+	draw(drawContext) {
+		drawContext.beginPath();
+		drawContext.fillStyle = this.color;
+		drawContext.arc(this.xPos + this.width / 2, this.yPos + this.width / 2, this.width / 2, 0, 2 * Math.PI);
+		drawContext.fill();
+		if (DEBUG) {
+			drawContext.strokeStyle = "#FF0000";
+			drawContext.strokeRect(this.xPos, this.yPos, this.width, this.width);
+		}
+	}
 }
 
-function detectCollisions(ball, blocks, balls) {
-    var cx = false;
-    var cy = false;
+class Background {
+	constructor(canvas) {
+		this.canvas = canvas;
+		this.drawContext = canvas.getContext('2d');
 
-    for (var i = 0; i < blocks.length; i++) {
-        var block = blocks[i];
+		this.onWindowResize();
+		setTimeout(this.onWindowResize.bind(this), 100);
+		DOMInterface.registerResizeListener(this.onWindowResize.bind(this));
 
-        moveBall(ball, 'x');
-        cx = ballEdgeCollision(ball, block);
-        moveBall(ball, 'x', true);
-        moveBall(ball, 'y');
-        cy = ballEdgeCollision(ball, block);
-        moveBall(ball, 'y', true);
+		this.rectangles = this.createRectangles();
+		this.balls = this.createBalls();
+		this.waves = [];
+	}
 
-        if (cx || cy)
-            return {
-                x: cx,
-                y: cy,
-                ballO: null
-            };
-    }
+	adjustCanvasSize() {
+		this.canvas.setAttribute('width', DOMInterface.adjustedScreenWidth);
+		this.canvas.setAttribute('height', DOMInterface.adjustedScreenHeight);
+	}
 
-    for (var i = 0; i < balls.length; i++) {
-        var ballO = balls[i];
-        if (ball == ballO)
-            continue;
+	createRectangles() {
+		let rectangles = DOMInterface.findTextRectangles();
 
-        moveBall(ball, 'x');
-        cx = ballBallCollision(ball, ballO);
-        moveBall(ball, 'x', true);
-        moveBall(ball, 'y');
-        cy = ballBallCollision(ball, ballO);
-        moveBall(ball, 'y', true);
+		let adjustedScreenWidth = DOMInterface.adjustedScreenWidth;
+		let adjustedScreenHeight = DOMInterface.adjustedScreenHeight;
 
-        if (cx || cy)
-            return {
-                x: cx,
-                y: cy,
-                ballO: i
-            };
-    }
-    return false;
-}
+		rectangles.push(...[
+			new Rectangle(0, -10, adjustedScreenWidth, 0),
+			new Rectangle(0, adjustedScreenHeight, adjustedScreenWidth, adjustedScreenHeight + 10),
+			new Rectangle(-10, 0, 0, adjustedScreenHeight),
+			new Rectangle(adjustedScreenWidth, 0, adjustedScreenWidth + 10, adjustedScreenHeight)
+		]);
 
-function handleCollisions(ball, blocks, balls) {
-    var collision = detectCollisions(ball, blocks, balls);
+		return rectangles;
+	}
 
-    if (collision.x) {
-        ball.dx *= -1;
-        if (collision.ballO != null)
-            balls[collision.ballO].dx *= -1;
+	onWindowResize() {
+		this.rectangles = this.createRectangles();
+		this.adjustCanvasSize();
+	}
 
-    }
-    if (collision.y) {
-        ball.dy *= -1;
-        if (collision.ballO != null)
-            balls[collision.ballO].dy *= -1;
-    }
-    if (collision.x || collision.y) {
-        waves.push({
-            x: ball.x + ball.w / 2,
-            y: ball.y + ball.w / 2,
-            w: ball.w / 2,
-            ow: ball.w / 2,
-            c: ball.color
-        });
-        ball.collides++;
-    } else
-        ball.collides = 0;
-
-    if (collision.ballO != null) {
-        var ballO = balls[collision.ballO];
-        waves.push({
-            x: ballO.x + ballO.w / 2,
-            y: ballO.y + ballO.w / 2,
-            w: ballO.w / 2,
-            ow: ballO.w / 2,
-            c: ballO.color
-        });
-    }
+	createBalls() {
+		let balls = [];
+		for (let i = 0; i < (window.innerWidth <= 800 ? 2 : 10); i++) {
+			let width = Math.floor(3 * Math.random() * 20) + 20;
+			let ball = new Ball(
+				width,
+				Math.floor(Math.random() * DOMInterface.screenWidth - width),
+				Math.floor(Math.random() * DOMInterface.screenHeight - width),
+				(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
+				(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
+				'rgba(' + Utils.blueShades[Math.floor(Math.random() * Utils.blueShades.length)] + ',0.4)');
 
 
-}
+			while (ball.collidesWith(this.rectangles, balls))
+				ball.randomizePos();
 
-var lastBallPositions = [];
+			balls.push(ball);
+		}
 
-function drawBall(ball) {
-    ctx.beginPath();
-    ctx.fillStyle = ball.color;
-    ctx.arc(ball.x + ball.w / 2, ball.y + ball.w / 2, ball.w / 2, 0, 2 * Math.PI);
-    ctx.fill();
-    if (DEBUG) {
-        ctx.strokeStyle = "#FF0000";
-        ctx.strokeRect(ball.x, ball.y, ball.w, ball.w);
-    }
-}
+		return balls;
+	}
 
-function drawWave(wave) {
-    ctx.beginPath();
-    ctx.strokeStyle = wave.c;
-    ctx.arc(wave.x, wave.y, wave.w, 0, 2 * Math.PI);
-    ctx.stroke();
-}
+	createWave(ball) {
+		this.waves.push(new Wave(
+			ball.width / 2,
+			ball.xPos + ball.width / 2,
+			ball.yPos + ball.width / 2,
+			ball.color));
+	}
+
+	tick(self) {
+		this.update();
+		this.draw();
+
+		DOMInterface.queueNextFrame(this.tick.bind(this));
+	}
+
+	update() {
+		for (let ball of this.balls) {
+			if (ball.collidesWith(this.rectangles, this.balls)) {
+				this.createWave(ball);
+			}
+		}
+
+		for (let ball of this.balls) {
+			if (ball.collides > 2) {
+				ball.randomizePos();
+			} else {
+				ball.move('x');
+				ball.move('y');
+			}
+		}
 
 
 
-function draw() {
-    ctx.clearRect(0, 0, document.documentElement.clientWidth, document.documentElement.clientHeight);
+		for (let i = 0; i < this.waves.length; i++) {
+			let wave = this.waves[i];
 
-    if (DEBUG) {
-        ctx.strokeStyle = "#FF0000";
-        for (var element of elements) {
-            ctx.strokeRect(element.left, element.top, element.right - element.left, element.bottom - element.top);
-        }
-    }
+			wave.width += 5 / wave.originalWidth;
 
-    for (var ball of balls) {
-        handleCollisions(ball, elements, balls);
+			if (wave.width >= wave.originalWidth * 2) {
+				this.waves.splice(i, 1);
+				i--;
+			}
+		}
+	}
 
-        moveBall(ball, 'x');
-        moveBall(ball, 'y');
+	draw() {
+		this.drawContext.clearRect(0, 0, document.documentElement.clientWidth, document.documentElement.clientHeight);
 
-        drawBall(ball);
+		if (DEBUG) {
+			for (let rectangle of this.rectangles) {
+				rectangle.draw(this.drawContext);
+			}
+		}
 
-        if (ball.collides > 2)
-            randomizeBallPos(ball);
-    }
+		for (let ball of this.balls) {
+			ball.draw(this.drawContext);
+		}
 
-    for (var i = 0; i < waves.length; i++) {
-        var wave = waves[i];
-        drawWave(wave);
-        wave.w += 5 / wave.ow;
-
-        if (wave.w >= wave.ow * 2) {
-            waves.splice(i, 1);
-            i--;
-        }
-    }
-
-    requestAnimationFrame(draw);
+		for (let wave of this.waves) {
+			wave.draw(this.drawContext);
+		}
+	}
 }
