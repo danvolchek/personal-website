@@ -2,6 +2,41 @@
 var DEBUG = false;
 
 /**
+ * Represents an RGBA color.
+ */
+class Color {
+	/**
+	 * Constructs an instance.
+	 * @param  {float} red   The red value.
+	 * @param  {float} green The green value.
+	 * @param  {float} blue  The blue value.
+	 * @param  {float} alpha The alpha value.
+	 */
+	constructor(red, green, blue, alpha) {
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
+		this.alpha = 1;
+	}
+
+	/**
+	 * Returns a string representation of this color.
+	 * @return {string} This color as a string.
+	 */
+	toString() {
+		return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
+	}
+
+	/**
+	 * Returns a copy of this Color.
+	 * @return {Color} A copy of this color.
+	 */
+	copy() {
+		return new Color(this.red, this.green, this.blue, this.alpha);
+	}
+}
+
+/**
  * A class with some utility methods.
  */
 class Utils {
@@ -21,7 +56,7 @@ class Utils {
 	 * @return {string[]} An array of shades of blue.
 	 */
 	static get blueShades() {
-		return ['66,146,198', '33,113,181', '8,81,156', '8,48,107', '8,48,107'];
+		return [new Color(66, 146, 198, 0.4), new Color(33, 113, 181, 0.4), new Color(8, 81, 156, 0.4), new Color(8, 48, 107, 0.4), new Color(8, 48, 107, 0.4)];
 	}
 }
 
@@ -148,7 +183,7 @@ class Drawable {
 	 * @param  {float}  width The width.
 	 * @param  {float}  xPos  The x position.
 	 * @param  {float}  yPos  The y position.
-	 * @param  {string} color The color.
+	 * @param  {Color}  color The color.
 	 */
 	constructor(width, xPos, yPos, color) {
 		this.width = width;
@@ -167,11 +202,12 @@ class Wave extends Drawable {
 	 * @param  {float}  width The width.
 	 * @param  {float}  xPos  The x position.
 	 * @param  {float}  yPos  The y position.
-	 * @param  {string} color The color.
+	 * @param  {Color}  color The color.
 	 */
 	constructor(width, xPos, yPos, color) {
 		super(width, xPos, yPos, color);
 		this.originalWidth = width;
+		this.alphaChange = this.color.alpha / (this.width / (5 / this.originalWidth));
 	}
 
 	/**
@@ -180,8 +216,9 @@ class Wave extends Drawable {
 	 */
 	grow() {
 		this.width += 5 / this.originalWidth;
+		this.color.alpha -= this.alphaChange;
 
-		if (this.width >= this.originalWidth * 2) {
+		if (this.color.alpha <= 0) {
 			return true;
 		}
 	}
@@ -192,7 +229,7 @@ class Wave extends Drawable {
 	 */
 	draw(drawContext) {
 		drawContext.beginPath();
-		drawContext.strokeStyle = this.color;
+		drawContext.strokeStyle = this.color.toString();
 		drawContext.arc(this.xPos, this.yPos, this.width, 0, 2 * Math.PI);
 		drawContext.stroke();
 	}
@@ -224,7 +261,7 @@ class Ball extends Drawable {
 	 * @param  {float}  yPos  The y position.
 	 * @param  {float}  xPos  The x velocity.
 	 * @param  {float}  yPos  The y velocity.
-	 * @param  {string} color The color.
+	 * @param  {Color}  color The color.
 	 */
 	constructor(width, xPos, yPos, xVel, yVel, color) {
 		super(width, xPos, yPos, color);
@@ -274,7 +311,7 @@ class Ball extends Drawable {
 	 */
 	draw(drawContext) {
 		drawContext.beginPath();
-		drawContext.fillStyle = this.color;
+		drawContext.fillStyle = this.color.toString();
 		drawContext.arc(this.xPos + this.width / 2, this.yPos + this.width / 2, this.width / 2, 0, 2 * Math.PI);
 		drawContext.fill();
 		if (DEBUG) {
@@ -450,7 +487,7 @@ class Background {
 				Math.floor(Math.random() * DOMInterface.screenHeight - width),
 				(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
 				(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
-				'rgba(' + Utils.blueShades[Math.floor(Math.random() * Utils.blueShades.length)] + ',0.4)');
+				Utils.blueShades[Math.floor(Math.random() * Utils.blueShades.length)]);
 
 
 			while (ball.collidesWith(this.rectangles, balls))
@@ -471,7 +508,7 @@ class Background {
 			ball.width / 2,
 			ball.xPos + ball.width / 2,
 			ball.yPos + ball.width / 2,
-			ball.color));
+			ball.color.copy()));
 	}
 
 	/**
