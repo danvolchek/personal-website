@@ -52,11 +52,29 @@ class Utils {
 	}
 
 	/**
+	 * A modulo implementaiton that handles negative numbers correctly.
+	 * @param  {float} dividend The dividend.
+	 * @param  {float} divisor The divisor.
+	 * @return {float}   The remainder.
+	 */
+	static modulo(dividend, divisor) {
+		return ((dividend % divisor) + divisor) % divisor;
+	}
+
+	/**
 	 * Returns an array of nice looking shades of blue.
 	 * @return {string[]} An array of shades of blue.
 	 */
 	static get blueShades() {
-		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1), new Color(8, 48, 107, 1)];
+		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1)];
+	}
+
+	/**
+	 * Returns an array of nice looking shades of green.
+	 * @return {string[]} An array of shades of green.
+	 */
+	static get grayShades() {
+		return [new Color(125, 180, 193, 1), new Color(130, 165, 173, 1), new Color(137, 158, 163, 1)];
 	}
 }
 
@@ -70,12 +88,14 @@ class Rectangle {
 	 * @param  {float} top    The top most point of the rectangle.
 	 * @param  {float} right  The right most point of the rectangle.
 	 * @param  {float} bottom The bottom most point of the rectangle.
+	 * @param  {bool}  isWall Whether this rectangle represents a wall.
 	 */
-	constructor(left, top, right, bottom) {
+	constructor(left, top, right, bottom, isWall = false) {
 		this.left = left;
 		this.top = top;
 		this.right = right;
 		this.bottom = bottom;
+		this.isWall = isWall;
 	}
 
 	/**
@@ -106,22 +126,6 @@ class DOMInterface {
 	 */
 	static get screenHeight() {
 		return document.documentElement.clientHeight;
-	}
-
-	/**
-	 * Gets an integer version of the width of the screen, rounded down.
-	 * @return {int} The width of the screen.
-	 */
-	static get adjustedScreenWidth() {
-		return Math.floor(DOMInterface.screenWidth) - 1;
-	}
-
-	/**
-	 * Gets an integer version of the height of the screen, rounded down.
-	 * @return {int} The height of the screen.
-	 */
-	static get adjustedScreenHeight() {
-		return Math.floor(DOMInterface.screenHeight) - 1;
 	}
 
 	/**
@@ -291,18 +295,25 @@ class Ball extends Drawable {
 	}
 
 	/**
-	 * Checks whether the ball with collide with the given rectangles and balls, handling collision.
-	 * @param  {Rectangle[]} rectangles The rectangles to check against.
-	 * @param  {Ball[]} 	 balls      The balls to check againts.
-	 * @return {CollisionInfo}          The collision info, or null.
+	 * Checks whether this ball collides with the given ball.
+	 * @param  {Ball} ball The other ball.
+	 * @return {bool}      If a collision happened.
 	 */
-	collidesWith(rectangles, balls) {
-		let collision = this.collidesWithImpl(this.collidesWithRect.bind(this), rectangles) ||
-			this.collidesWithImpl(this.collidesWithBall.bind(this), balls);
+	collidesWithBall(ball) {
+		return ball.collidesWithBallImpl(this);
+	}
+
+	/**
+	 * Checks whether this ball collides with the given rect.
+	 * @param  {Rectangle} rect The other rectangle.
+	 * @return {bool}      	    If a collision happened.
+	 */
+	collidesWithRect(rect) {
+		let collision = this.collidesWithImpl(this.ballRectCollisionTest.bind(this), rect);
 
 		this.handleCollision(collision);
 
-		return collision;
+		return collision != null;
 	}
 
 	/**
@@ -316,38 +327,47 @@ class Ball extends Drawable {
 		drawContext.fill();
 		if (DEBUG) {
 			drawContext.strokeStyle = "#FF0000";
-			drawContext.strokeRect(this.xPos, this.yPos, this.width, this.width);
+			drawContext.arc(this.xPos + this.width / 2, this.yPos + this.width / 2, this.width / 2, 0, 2 * Math.PI);
+			drawContext.stroke();
 		}
 	}
 
 	/* Private Methods */
 
 	/**
+	 * Implementation for whether this ball collides with another ball.
+	 * @param  {Ball} ball The other ball.
+	 * @return {bool}      Whether a collision happened or not.
+	 */
+	collidesWithBallImpl(ball) {
+		let collision = this.collidesWithImpl(this.ballBallCollisionTest.bind(this), ball);
+
+		this.handleCollision(collision);
+
+		return collision != null;
+	}
+
+	/**
 	 * Implementation for collision detection.
 	 * @param  {Function} method   The method to call that detects collisions.
-	 * @param  {Drawable} elements Elements to compare against for collision.
+	 * @param  {Drawable} element  Element to compare against for collision.
 	 * @return {CollisionInfo}     The collision that happened, or null.
 	 */
-	collidesWithImpl(method, elements) {
+	collidesWithImpl(method, element) {
 		let collisionX = false;
 		let collisionY = false;
 
-		for (let element of elements) {
-			if (element == this)
-				continue;
+		// Move the ball, check if there will be a collision, then move it back.
 
-			// Move the ball, check if there will be a collision, then move it back.
+		this.move('x');
+		collisionX = method(element);
+		this.move('x', true);
+		this.move('y');
+		collisionY = method(element);
+		this.move('y', true);
 
-			this.move('x');
-			collisionX = method(element);
-			this.move('x', true);
-			this.move('y');
-			collisionY = method(element);
-			this.move('y', true);
-
-			if (collisionX || collisionY) {
-				return new CollisionInfo(collisionX, collisionY);
-			}
+		if (collisionX || collisionY) {
+			return new CollisionInfo(collisionX, collisionY);
 		}
 
 		return null;
@@ -379,7 +399,7 @@ class Ball extends Drawable {
 	 * @param  {Rectangle} rectangle The rectangle to check against.
 	 * @return {bool}           	 Whether a collision is happening.
 	 */
-	collidesWithRect(rectangle) {
+	ballRectCollisionTest(rectangle) {
 		let closestX = Utils.clamp(this.xPos + (this.width / 2), rectangle.left, rectangle.right);
 		let closestY = Utils.clamp(this.yPos + (this.width / 2), rectangle.top, rectangle.bottom);
 
@@ -395,8 +415,134 @@ class Ball extends Drawable {
 	 * @param  {Ball} ball The ball to check against.
 	 * @return {bool}      Whether a collision is happening.
 	 */
-	collidesWithBall(ball) {
+	ballBallCollisionTest(ball) {
 		return Math.hypot(this.xPos + (this.width / 2) - ball.xPos - (ball.width / 2), this.yPos + (this.width / 2) - ball.yPos - (ball.width / 2)) <= this.width / 2 + ball.width / 2;
+	}
+}
+
+/**
+ * Represents a ball that ignores walls and instead wraps around the screen.
+ */
+class WrapAroundBall extends Ball {
+	/**
+	 * Moves the ball.
+	 * @param  {string}  direction Which direction to movie in. Either 'x' or 'y'.
+	 * @param  {Boolean} backwards Whether to move the ball backwards or not.
+	 */
+	move(direction, backwards = false) {
+		super.move(direction, backwards);
+
+		// Update the ball position to be at the opposite edge if not currently doing reflection testing.
+		if (!this.reflected) {
+			this.xPos = Utils.modulo(this.xPos, DOMInterface.screenWidth);
+			this.yPos = Utils.modulo(this.yPos, DOMInterface.screenHeight);
+		}
+	}
+
+	/**
+	 * Draws the ball.
+	 * @param  {Context2D} drawContext The context to draw on.
+	 */
+	draw(drawContext) {
+		super.draw(drawContext);
+
+		// Redraw the ball at the opposite edge if necessary.
+		if (this.reflect()) {
+			super.draw(drawContext);
+			this.unreflect();
+		}
+	}
+
+	/**
+	 * Checks whether this ball collides with the given ball.
+	 * Has the other ball check against both this ball and its reflected position, if necessary.
+	 * @param  {Ball} ball The other ball.
+	 * @return {bool}      If a collision happened.
+	 */
+	collidesWithBall(ball) {
+		let collides = ball.collidesWithBallImpl(this);
+
+		if (this.reflect()) {
+			collides = collides || ball.collidesWithBallImpl(this);
+			this.unreflect();
+		}
+
+		return collides;
+	}
+
+	/* Private Methods */
+
+	/**
+	 * Implementation for whether this ball collides with another ball.
+	 * Checks both this ball and its reflected position, if necessary.
+	 * @param  {Ball} ball The other ball.
+	 * @return {bool}      Whether a collision happened or not.
+	 */
+	collidesWithBallImpl(ball) {
+		//Original position.
+		let collision = this.collidesWithImpl(this.ballBallCollisionTest.bind(this), ball);
+
+		//Reflected position.
+		if (this.reflect()) {
+			collision = collision || this.collidesWithImpl(this.ballBallCollisionTest.bind(this), ball);
+			this.unreflect();
+		}
+
+		this.handleCollision(collision);
+
+		return collision != null;
+	}
+
+	/**
+	 * Reflects this ball along the edges of the screen if it is close enough to the right or bottom edge.
+	 * @return {bool} Whether reflection happened.
+	 */
+	reflect() {
+		let modified = false;
+
+		if (this.xPos >= DOMInterface.screenWidth - this.width) {
+			this.xPos -= DOMInterface.screenWidth;
+			modified = true;
+		}
+
+		if (this.yPos >= DOMInterface.screenHeight - this.width) {
+			this.yPos -= DOMInterface.screenHeight;
+			modified = true;
+		}
+
+		if (modified) {
+			this.reflected = true;
+		}
+
+		return modified;
+	}
+
+	/**
+	 * Returns the ball to its original position.
+	 */
+	unreflect() {
+		if (this.xPos <= 0)
+			this.xPos += DOMInterface.screenWidth;
+
+		if (this.yPos <= 0)
+			this.yPos += DOMInterface.screenHeight;
+
+		this.reflected = false;
+	}
+
+
+	/**
+	 * Whether the ball collides with the given rectangle.
+	 * @param  {Rectangle} rectangle The rectangle to check against.
+	 * @return {bool}           	 Whether a collision is happening.
+	 */
+	ballRectCollisionTest(rectangle) {
+		// Ignore walls.
+		if (rectangle.isWall) {
+			return false;
+		}
+
+		return super.ballRectCollisionTest(rectangle);
 	}
 }
 
@@ -447,8 +593,8 @@ class Background {
 	 * Adjusts the size of the canvas to match the screen.
 	 */
 	adjustCanvasSize() {
-		this.canvas.setAttribute('width', DOMInterface.adjustedScreenWidth);
-		this.canvas.setAttribute('height', DOMInterface.adjustedScreenHeight);
+		this.canvas.setAttribute('width', DOMInterface.screenWidth);
+		this.canvas.setAttribute('height', DOMInterface.screenHeight);
 	}
 
 	/**
@@ -459,15 +605,15 @@ class Background {
 		//The visible text.
 		let rectangles = DOMInterface.findTextRectangles();
 
-		let adjustedScreenWidth = DOMInterface.adjustedScreenWidth;
-		let adjustedScreenHeight = DOMInterface.adjustedScreenHeight;
+		let screenWidth = DOMInterface.screenWidth;
+		let screenHeight = DOMInterface.screenHeight;
 
 		//Walls so the balls don't leave the screen.
 		rectangles.push(...[
-			new Rectangle(0, -10, adjustedScreenWidth, 0),
-			new Rectangle(0, adjustedScreenHeight, adjustedScreenWidth, adjustedScreenHeight + 10),
-			new Rectangle(-10, 0, 0, adjustedScreenHeight),
-			new Rectangle(adjustedScreenWidth, 0, adjustedScreenWidth + 10, adjustedScreenHeight)
+			new Rectangle(0, -10, screenWidth, 0, true),
+			new Rectangle(0, screenHeight, screenWidth, screenHeight + 10, true),
+			new Rectangle(-10, 0, 0, screenHeight, true),
+			new Rectangle(screenWidth, 0, screenWidth + 10, screenHeight, true)
 		]);
 
 		return rectangles;
@@ -479,24 +625,40 @@ class Background {
 	 */
 	createBalls() {
 		let balls = [];
-		for (let i = 0; i < (window.innerWidth <= 800 ? 2 : 10); i++) {
-			let width = Math.floor(3 * Math.random() * 20) + 20;
-			let ball = new Ball(
-				width,
-				Math.floor(Math.random() * DOMInterface.screenWidth - width),
-				Math.floor(Math.random() * DOMInterface.screenHeight - width),
-				(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
-				(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
-				Utils.blueShades[Math.floor(Math.random() * Utils.blueShades.length)]);
 
+		let numBalls = window.innerWidth <= 800 ? 2 : 8;
 
-			while (ball.collidesWith(this.rectangles, balls))
+		for (let i = 0; i < numBalls; i++) {
+			balls.push(this.createRandomBall(Ball, Utils.blueShades, Math.floor(3 * Math.random() * 20) + 20));
+		}
+
+		for (let i = 0; i < numBalls / 2; i++) {
+			balls.push(this.createRandomBall(WrapAroundBall, Utils.grayShades, Math.floor(3 * Math.random() * 20) + 20));
+		}
+
+		for (let ball of balls) {
+			while (this.anyCollisions(ball, this.rectangles, balls))
 				ball.randomizePos();
-
-			balls.push(ball);
 		}
 
 		return balls;
+	}
+
+	/**
+	 * Creates a ball of the given type with a certain width and random color from the given shades.
+	 * @param  {Ball}    type   A subclass of ball.
+	 * @param  {Color[]} shades An array of colors.
+	 * @param  {float}   width  The width of the ball
+	 * @return {ball}           The created ball.
+	 */
+	createRandomBall(type, shades, width) {
+		return new type(
+			width,
+			Math.floor(Math.random() * DOMInterface.screenWidth - width),
+			Math.floor(Math.random() * DOMInterface.screenHeight - width),
+			(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
+			(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
+			shades[Math.floor(Math.random() * shades.length)]);
 	}
 
 	/**
@@ -512,12 +674,41 @@ class Background {
 	}
 
 	/**
+	 * Checks for any collisions between the given ball and othe rectangles and balls.
+	 * @param  {Ball} ball              The ball to check collisions for.
+	 * @param  {Rectangle[]} rectangles The rectangles to check against.
+	 * @param  {Ball[]} balls           The balls to check against.
+	 * @return {bool}                   Whether a collision happened.
+	 */
+	anyCollisions(ball, rectangles, balls) {
+		let collisionRect = false;
+		let collisionBall = false;
+
+		//Rectangle collisions.
+		for (let rectangle of rectangles) {
+			if (collisionRect = ball.collidesWithRect(rectangle))
+				break;
+		}
+
+		//Ball collisions.
+		for (let otherBall of balls) {
+			if (otherBall == ball)
+				continue;
+
+			if (collisionBall = ball.collidesWithBall(otherBall))
+				break;
+		}
+
+		return collisionRect || collisionBall;
+	}
+
+	/**
 	 * Updates the ball simulation by one step.
 	 */
 	update() {
 		//Check collisions and create waves. Velocity changing is handled in the Ball class.
 		for (let ball of this.balls) {
-			if (ball.collidesWith(this.rectangles, this.balls)) {
+			if (this.anyCollisions(ball, this.rectangles, this.balls)) {
 				this.createWave(ball);
 			}
 		}

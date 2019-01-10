@@ -34,6 +34,11 @@ body, html {
 
 a {
   color: #bec5d1;
+  font-size: 150%;
+}
+
+span {
+  font-size: 150%;
 }
 
 a:hover {
@@ -50,7 +55,7 @@ h3 {
 }
 
 #name {
-  font-size: 500%;
+  font-size: 600%;
 }
 
 .left {
