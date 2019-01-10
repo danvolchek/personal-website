@@ -626,7 +626,7 @@ class Background {
 	createBalls() {
 		let balls = [];
 
-		let numBalls = window.innerWidth <= 800 ? 2 : 8;
+		let numBalls = 8;
 
 		for (let i = 0; i < numBalls; i++) {
 			balls.push(this.createRandomBall(Ball, Utils.blueShades, Math.floor(3 * Math.random() * 20) + 20));
