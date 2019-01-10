@@ -66,7 +66,7 @@ class Utils {
 	 * @return {string[]} An array of shades of blue.
 	 */
 	static get blueShades() {
-		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1)];
+		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1), new Color(8, 48, 107, 1)];
 	}
 
 	/**
@@ -633,7 +633,7 @@ class Background {
 		}
 
 		for (let i = 0; i < numBalls / 2; i++) {
-			balls.push(this.createRandomBall(WrapAroundBall, Utils.grayShades, Math.floor(3 * Math.random() * 20) + 20));
+			balls.push(this.createRandomBall(WrapAroundBall, Utils.grayShades, Math.floor(2 * Math.random() * 20) + 20));
 		}
 
 		for (let ball of balls) {
