@@ -732,8 +732,9 @@ class Background {
 
 		// Randomize the ball to a new spot if its been colliding too much, otherwise move it one step.
 		for (let ball of this.balls) {
-			if (ball.collides > 2) {
-				ball.randomizePos();
+			if (ball.collides > 10) {
+				while(this.anyCollisions(ball, this.rectangles, this.balls))
+					ball.randomizePos();
 				ball.collides = 0;
 			} else {
 				ball.move('x');
