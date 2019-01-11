@@ -391,7 +391,6 @@ class Ball extends Drawable {
 	 */
 	handleCollision(collision) {
 		if (collision == null) {
-			this.collides = 0;
 			return;
 		}
 
@@ -480,6 +479,20 @@ class WrapAroundBall extends Ball {
 		return this.reflect(ball.collidesWithBallImpl.bind(ball, this));
 	}
 
+	/**
+	 * Checks whether this ball collides with the given rect.
+	 * @param  {Rectangle} rect The other rectangle.
+	 * @return {bool}      	    If a collision happened.
+	 */
+	collidesWithRect(rect) {
+		// Ignore walls.
+		if (rect.isWall) {
+			return false;
+		}
+
+		return super.collidesWithRect(rect);
+	}
+
 	/* Private Methods */
 
 	/**
@@ -559,20 +572,6 @@ class WrapAroundBall extends Ball {
 	static appendAggregator(curr, next) {
 		curr.push(next);
 		return curr;
-	}
-
-	/**
-	 * Whether the ball collides with the given rectangle.
-	 * @param  {Rectangle} rectangle The rectangle to check against.
-	 * @return {bool}           	 Whether a collision is happening.
-	 */
-	ballRectCollisionTest(rectangle) {
-		// Ignore walls.
-		if (rectangle.isWall) {
-			return false;
-		}
-
-		return super.ballRectCollisionTest(rectangle);
 	}
 }
 
@@ -735,6 +734,7 @@ class Background {
 		for (let ball of this.balls) {
 			if (ball.collides > 2) {
 				ball.randomizePos();
+				ball.collides = 0;
 			} else {
 				ball.move('x');
 				ball.move('y');
