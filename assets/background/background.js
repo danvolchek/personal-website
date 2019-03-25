@@ -1,5 +1,4 @@
 'use strict';
-var DEBUG = false;
 
 /**
  * Represents an RGBA color.
@@ -17,22 +16,8 @@ class Color {
 		this.green = green;
 		this.blue = blue;
 		this.alpha = alpha;
-	}
 
-	/**
-	 * Returns a string representation of this color.
-	 * @return {string} This color as a string.
-	 */
-	toString() {
-		return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
-	}
-
-	/**
-	 * Returns a copy of this Color.
-	 * @return {Color} A copy of this color.
-	 */
-	copy() {
-		return new Color(this.red, this.green, this.blue, this.alpha);
+		this.value = `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
 	}
 }
 
@@ -68,14 +53,6 @@ class Utils {
 	static get blueShades() {
 		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1), new Color(8, 48, 107, 1)];
 	}
-
-	/**
-	 * Returns an array of nice looking shades of green.
-	 * @return {string[]} An array of shades of green.
-	 */
-	static get grayShades() {
-		return [new Color(125, 180, 193, 1), new Color(130, 165, 173, 1), new Color(137, 158, 163, 1)];
-	}
 }
 
 /**
@@ -96,15 +73,6 @@ class Rectangle {
 		this.right = right;
 		this.bottom = bottom;
 		this.isWall = isWall;
-	}
-
-	/**
-	 * Draws the rectangle
-	 * @param  {Context2D} drawContext Context upon which
-	 */
-	draw(drawContext) {
-		drawContext.strokeStyle = "#FF0000";
-		drawContext.strokeRect(this.left, this.top, this.right - this.left, this.bottom - this.top);
 	}
 }
 
@@ -179,67 +147,6 @@ class DOMInterface {
 }
 
 /**
- * A drawable class that has a width, 2d position, and a color.
- */
-class Drawable {
-	/**
-	 * Constructs an instance.
-	 * @param  {float}  width The width.
-	 * @param  {float}  xPos  The x position.
-	 * @param  {float}  yPos  The y position.
-	 * @param  {Color}  color The color.
-	 */
-	constructor(width, xPos, yPos, color) {
-		this.width = width;
-		this.xPos = xPos;
-		this.yPos = yPos;
-		this.color = color;
-	}
-}
-
-/**
- * A wave created by ball collisions.
- */
-class Wave extends Drawable {
-	/**
-	 * Constructs an instance.
-	 * @param  {float}  width The width.
-	 * @param  {float}  xPos  The x position.
-	 * @param  {float}  yPos  The y position.
-	 * @param  {Color}  color The color.
-	 */
-	constructor(width, xPos, yPos, color) {
-		super(width, xPos, yPos, color);
-		this.originalWidth = width;
-		this.alphaChange = this.color.alpha / (this.width / (5 / this.originalWidth));
-	}
-
-	/**
-	 * Makes the wave larger.
-	 * @return {bool} Whether the wave should be destroyed.
-	 */
-	grow() {
-		this.width += 5 / this.originalWidth;
-		this.color.alpha -= this.alphaChange;
-
-		if (this.color.alpha <= 0) {
-			return true;
-		}
-	}
-
-	/**
-	 * Draws the wave.
-	 * @param  {Context2D} drawContext The context to draw on.
-	 */
-	draw(drawContext) {
-		drawContext.beginPath();
-		drawContext.strokeStyle = this.color.toString();
-		drawContext.arc(this.xPos, this.yPos, this.width, 0, 2 * Math.PI);
-		drawContext.stroke();
-	}
-}
-
-/**
  * Represents info about a collision.
  */
 class CollisionInfo {
@@ -257,7 +164,7 @@ class CollisionInfo {
 /**
  * Represents a ball that moves around.
  */
-class Ball extends Drawable {
+class Ball {
 	/**
 	 * Constructs an instance.
 	 * @param  {float}  width The width.
@@ -268,10 +175,43 @@ class Ball extends Drawable {
 	 * @param  {Color}  color The color.
 	 */
 	constructor(width, xPos, yPos, xVel, yVel, color) {
-		super(width, xPos, yPos, color);
+		this.width = width;
+		this.xPos = xPos;
+		this.yPos = yPos;
+		this.color = color;
 		this.xVel = xVel;
 		this.yVel = yVel;
 		this.collides = 0;
+
+		this.element = this.createElement(width, xPos, yPos, xVel, yVel, color);
+	}
+
+	/**
+	 * Constructs an SVG for drawing the ball.
+	 * @param  {float}  width The width.
+	 * @param  {float}  xPos  The x position.
+	 * @param  {float}  yPos  The y position.
+	 * @param  {float}  xPos  The x velocity.
+	 * @param  {float}  yPos  The y velocity.
+	 * @param  {Color}  color The color.
+	 * @return {SVG}          The created SVG.
+	 */
+	createElement(width, xPos, yPos, xVel, yVel, color) {
+		let svgns = "http://www.w3.org/2000/svg";
+		let ball = document.createElementNS(svgns, "svg");
+		ball.setAttribute("width", width);
+		ball.setAttribute("height", width);
+		ball.setAttribute("style", `position: absolute; left: ${xPos}px; top: ${yPos}px;`);
+		ball.setAttribute("viewBox", "0 0 10 10");
+
+		let circle = document.createElementNS(svgns, "circle");
+		circle.setAttribute("cx", "5");
+		circle.setAttribute("cy", "5");
+		circle.setAttribute("r", "5");
+		circle.setAttribute("fill", color.value);
+		ball.appendChild(circle);
+
+		return ball;
 	}
 
 	/**
@@ -292,6 +232,9 @@ class Ball extends Drawable {
 			this.xPos += (backwards ? -1 : 1) * this.xVel;
 		else if (direction == 'y')
 			this.yPos += (backwards ? -1 : 1) * this.yVel;
+
+		this.element.style.left = `${this.xPos}px`
+		this.element.style.top = `${this.yPos}px`;
 	}
 
 	/**
@@ -316,34 +259,6 @@ class Ball extends Drawable {
 		return collision != null;
 	}
 
-	/**
-	 * Creates a wave from this ball, matching its position, size, and color.
-	 * @return {Wave}     The created wave.
-	 */
-	createWave() {
-		return new Wave(
-			this.width / 2,
-			this.xPos + this.width / 2,
-			this.yPos + this.width / 2,
-			this.color.copy());
-	}
-
-	/**
-	 * Draws the ball.
-	 * @param  {Context2D} drawContext The context to draw on.
-	 */
-	draw(drawContext) {
-		drawContext.beginPath();
-		drawContext.fillStyle = this.color.toString();
-		drawContext.arc(this.xPos + this.width / 2, this.yPos + this.width / 2, this.width / 2, 0, 2 * Math.PI);
-		drawContext.fill();
-		if (DEBUG) {
-			drawContext.strokeStyle = "#FF0000";
-			drawContext.arc(this.xPos + this.width / 2, this.yPos + this.width / 2, this.width / 2, 0, 2 * Math.PI);
-			drawContext.stroke();
-		}
-	}
-
 	/* Private Methods */
 
 	/**
@@ -362,7 +277,7 @@ class Ball extends Drawable {
 	/**
 	 * Implementation for collision detection.
 	 * @param  {Function} method   The method to call that detects collisions.
-	 * @param  {Drawable} element  Element to compare against for collision.
+	 * @param  {Ball} element  Element to compare against for collision.
 	 * @return {CollisionInfo}     The collision that happened, or null.
 	 */
 	collidesWithImpl(method, element) {
@@ -432,150 +347,6 @@ class Ball extends Drawable {
 }
 
 /**
- * Represents a ball that ignores walls and instead wraps around the screen.
- */
-class WrapAroundBall extends Ball {
-	/**
-	 * Moves the ball.
-	 * @param  {string}  direction Which direction to movie in. Either 'x' or 'y'.
-	 * @param  {Boolean} backwards Whether to move the ball backwards or not.
-	 */
-	move(direction, backwards = false) {
-		super.move(direction, backwards);
-
-		// Update the ball position to be at the opposite edge if not currently doing reflection testing.
-		if (!this.reflected) {
-			this.xPos = Utils.modulo(this.xPos, DOMInterface.screenWidth);
-			this.yPos = Utils.modulo(this.yPos, DOMInterface.screenHeight);
-		}
-	}
-
-	/**
-	 * Draws the ball.
-	 * @param  {Context2D} drawContext The context to draw on.
-	 */
-	draw(drawContext) {
-		// Draws the ball at its position and reflected positions.
-		this.reflect(super.draw.bind(this, drawContext));
-	}
-
-	/**
-	 * Creates a wave from this ball, matching its position, size, and color.
-	 * @return {Wave}     The created wave.
-	 */
-	createWave() {
-		// Creates waves at the ball's position and reflected positions.
-		return this.reflect(super.createWave.bind(this), [], WrapAroundBall.appendAggregator);
-	}
-
-	/**
-	 * Checks whether this ball collides with the given ball.
-	 * Has the other ball check against both this ball and its reflected position, if necessary.
-	 * @param  {Ball} ball The other ball.
-	 * @return {bool}      If a collision happened.
-	 */
-	collidesWithBall(ball) {
-		// Checks for collisions at the ball's position and reflected positions.
-		return this.reflect(ball.collidesWithBallImpl.bind(ball, this));
-	}
-
-	/**
-	 * Checks whether this ball collides with the given rect.
-	 * @param  {Rectangle} rect The other rectangle.
-	 * @return {bool}      	    If a collision happened.
-	 */
-	collidesWithRect(rect) {
-		// Ignore walls.
-		if (rect.isWall) {
-			return false;
-		}
-
-		return super.collidesWithRect(rect);
-	}
-
-	/* Private Methods */
-
-	/**
-	 * Implementation for whether this ball collides with another ball.
-	 * Checks both this ball and its reflected position, if necessary.
-	 * @param  {Ball} ball The other ball.
-	 * @return {bool}      Whether a collision happened or not.
-	 */
-	collidesWithBallImpl(ball) {
-		// Checks for collisions at the ball's position and reflected positions.
-		let collision = this.reflect(this.collidesWithImpl.bind(this, this.ballBallCollisionTest.bind(this), ball));
-
-		this.handleCollision(collision);
-
-		return collision != null;
-	}
-
-	/**
-	 * Reflects the ball into the other positions it would be at if it wraps around the screen, calling a function for each new position.
-	 * @param  {Function} func 		   The function to call.
-	 * @param  {Any}      initialValue The initial value for aggregation.
-	 * @param  {Function} aggregator   How to aggregate the return values of the function call.
-	 * @return {Any}      			   The return value of the function calls, aggregated together.
-	 */
-	reflect(func, initialValue = null, aggregator = WrapAroundBall.orAggregator) {
-		this.reflected = true;
-		// Normal position.
-		let result = aggregator(initialValue, func());
-
-		// Reflected across x axis.
-		if (this.xPos >= DOMInterface.screenWidth - this.width) {
-			this.xPos -= DOMInterface.screenWidth;
-			result = aggregator(result, func());
-			this.xPos += DOMInterface.screenWidth;
-		}
-
-		// Reflected across y axis.
-		if (this.yPos >= DOMInterface.screenHeight - this.width) {
-			this.yPos -= DOMInterface.screenHeight;
-			result = aggregator(result, func());
-			this.yPos += DOMInterface.screenHeight;
-		}
-
-		// Reflected across both x and y axes.
-		if (this.xPos >= DOMInterface.screenWidth - this.width && this.yPos >= DOMInterface.screenHeight - this.width) {
-			this.yPos -= DOMInterface.screenHeight;
-			this.xPos -= DOMInterface.screenWidth;
-			result = aggregator(result, func());
-			this.yPos += DOMInterface.screenHeight;
-			this.xPos += DOMInterface.screenWidth;
-		}
-
-		this.reflected = false;
-		return result;
-	}
-
-	/**
-	 * An aggregator that or's together values.
-	 * Used in most calls to reflect, as they generally only care about the first collision that happened.
-	 *
-	 * @param  {Any} curr The current value.
-	 * @param  {Any} next The next value.
-	 * @return {Any}      The or'd together value.
-	 */
-	static orAggregator(curr, next) {
-		return curr || next;
-	}
-
-	/**
-	 * An aggregator that concatenates the values into an array.
-	 * Used when creating waves through reflect, as we want to make a wave for every reflection.
-	 *
-	 * @param  {Any[]} curr An array of values.
-	 * @param  {Any}   next The next value.
-	 * @return {Any[]}      An array with next added to the end.
-	 */
-	static appendAggregator(curr, next) {
-		curr.push(next);
-		return curr;
-	}
-}
-
-/**
  * Represents the background of the website, a cool display of bouncing balls.
  */
 class Background {
@@ -583,9 +354,8 @@ class Background {
 	 * Constructs an instance.
 	 * @param  {Canvas} canvas The canvas to draw on.
 	 */
-	constructor(canvas) {
-		this.canvas = canvas;
-		this.drawContext = canvas.getContext('2d');
+	constructor(container) {
+		this.container = container;
 
 		// Set up resize handling.
 		this.onWindowResize();
@@ -595,7 +365,10 @@ class Background {
 		// Set up ball bouncing.
 		this.rectangles = this.createRectangles();
 		this.balls = this.createBalls();
-		this.waves = [];
+
+		for(let ball of this.balls){
+			container.querySelector("#balls").appendChild(ball.element);
+		}
 	}
 
 	/**
@@ -603,7 +376,6 @@ class Background {
 	 */
 	tick() {
 		this.update();
-		this.draw();
 
 		DOMInterface.queueNextFrame(this.tick.bind(this));
 	}
@@ -615,15 +387,15 @@ class Background {
 	 */
 	onWindowResize() {
 		this.rectangles = this.createRectangles();
-		this.adjustCanvasSize();
+		this.adjustContainerSize();
 	}
 
 	/**
 	 * Adjusts the size of the canvas to match the screen.
 	 */
-	adjustCanvasSize() {
-		this.canvas.setAttribute('width', DOMInterface.screenWidth);
-		this.canvas.setAttribute('height', DOMInterface.screenHeight);
+	adjustContainerSize() {
+		this.container.setAttribute('width', DOMInterface.screenWidth);
+		this.container.setAttribute('height', DOMInterface.screenHeight);
 	}
 
 	/**
@@ -655,18 +427,14 @@ class Background {
 	createBalls() {
 		let balls = [];
 
-		let numBalls = 8;
+		let numBalls = 12;
 
 		for (let i = 0; i < numBalls; i++) {
-			balls.push(this.createRandomBall(Ball, Utils.blueShades, Math.floor(3 * Math.random() * 20) + 20));
-		}
-
-		for (let i = 0; i < numBalls / 2; i++) {
-			balls.push(this.createRandomBall(WrapAroundBall, Utils.grayShades, Math.floor(2 * Math.random() * 20) + 20));
+			balls.push(this.createRandomBall(Utils.blueShades, Math.floor(3 * Math.random() * 20) + 20));
 		}
 
 		for (let ball of balls) {
-			while (this.anyCollisions(ball, this.rectangles, balls))
+			while (this.checkForCollisions(ball, this.rectangles, balls))
 				ball.randomizePos();
 		}
 
@@ -680,8 +448,8 @@ class Background {
 	 * @param  {float}   width  The width of the ball
 	 * @return {ball}           The created ball.
 	 */
-	createRandomBall(type, shades, width) {
-		return new type(
+	createRandomBall(shades, width) {
+		return new Ball(
 			width,
 			Math.floor(Math.random() * DOMInterface.screenWidth - width),
 			Math.floor(Math.random() * DOMInterface.screenHeight - width),
@@ -692,12 +460,12 @@ class Background {
 
 	/**
 	 * Checks for any collisions between the given ball and othe rectangles and balls.
-	 * @param  {Ball} ball              The ball to check collisions for.
+	 * @param  {Ball}        ball       The ball to check collisions for.
 	 * @param  {Rectangle[]} rectangles The rectangles to check against.
-	 * @param  {Ball[]} balls           The balls to check against.
+	 * @param  {Ball[]}      balls      The balls to check against.
 	 * @return {bool}                   Whether a collision happened.
 	 */
-	anyCollisions(ball, rectangles, balls) {
+	checkForCollisions(ball, rectangles, balls) {
 		let collisionRect = false;
 		let collisionBall = false;
 
@@ -723,58 +491,21 @@ class Background {
 	 * Updates the ball simulation by one step.
 	 */
 	update() {
-		// Check collisions and create waves. Velocity changing is handled in the Ball class.
+		// Check collisions. Velocity changing is handled in the Ball class.
 		for (let ball of this.balls) {
-			if (this.anyCollisions(ball, this.rectangles, this.balls)) {
-				this.waves = this.waves.concat(ball.createWave());
-			}
+			this.checkForCollisions(ball, this.rectangles, this.balls);
 		}
 
 		// Randomize the ball to a new spot if its been colliding too much, otherwise move it one step.
 		for (let ball of this.balls) {
 			if (ball.collides > 10) {
-				while(this.anyCollisions(ball, this.rectangles, this.balls))
+				while(this.checkForCollisions(ball, this.rectangles, this.balls))
 					ball.randomizePos();
 				ball.collides = 0;
 			} else {
 				ball.move('x');
 				ball.move('y');
 			}
-		}
-
-		// Update every wave.
-		for (let i = 0; i < this.waves.length; i++) {
-			let wave = this.waves[i];
-
-			if (wave.grow()) {
-				this.waves.splice(i, 1);
-				i--;
-			}
-		}
-	}
-
-	/**
-	 * Draws the background.
-	 */
-	draw() {
-		// Clear the previous screen.
-		this.drawContext.clearRect(0, 0, document.documentElement.clientWidth, document.documentElement.clientHeight);
-
-		// Draw rectangle bounds for debug purposes if enabled.
-		if (DEBUG) {
-			for (let rectangle of this.rectangles) {
-				rectangle.draw(this.drawContext);
-			}
-		}
-
-		// Draw each ball.
-		for (let ball of this.balls) {
-			ball.draw(this.drawContext);
-		}
-
-		// Draw each wave.
-		for (let wave of this.waves) {
-			wave.draw(this.drawContext);
 		}
 	}
 }

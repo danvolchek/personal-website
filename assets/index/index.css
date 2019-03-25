@@ -13,15 +13,23 @@
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex;
-  position:absolute;
-  top:0;
-  bottom:0;
-  right:0;
-  left:0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+#background {
+  overflow: hidden;
+}
+
+#waves {
+  z-index: 1;
 }
  
 #content {
-   margin:auto;
+   margin: auto;
 }
  
 body, html {
@@ -59,9 +67,9 @@ h3 {
 }
 
 .left {
-  float:left;
+  float: left;
 }
 
 .right {
-  float:right;
+  float: right;
 }
