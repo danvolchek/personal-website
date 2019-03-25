@@ -367,7 +367,7 @@ class Background {
 		this.balls = this.createBalls();
 
 		for(let ball of this.balls){
-			container.querySelector("#balls").appendChild(ball.element);
+			container.appendChild(ball.element);
 		}
 	}
 
