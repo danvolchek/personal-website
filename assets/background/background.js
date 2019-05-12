@@ -369,7 +369,7 @@ class Background {
 		this.rectangles = this.createRectangles();
 		this.balls = this.createBalls();
 
-		for(let ball of this.balls){
+		for (let ball of this.balls) {
 			container.appendChild(ball.element);
 		}
 	}
@@ -391,6 +391,11 @@ class Background {
 	onWindowResize() {
 		this.rectangles = this.createRectangles();
 		this.adjustContainerSize();
+		if (this.balls != null)
+			for (let ball of this.balls) {
+				if (this.checkForCollisions(ball, this.rectangles, []))
+					ball.randomizePos();
+			}
 	}
 
 	/**
@@ -500,17 +505,10 @@ class Background {
 			this.checkForCollisions(ball, this.rectangles, this.balls);
 		}
 
-		// Randomize the ball to a new spot if its been colliding too much, otherwise move it one step.
+		// Move each ball.
 		for (let ball of this.balls) {
-			if (ball.collides > 10) {
-				ball.randomizePos();
-				while(this.checkForCollisions(ball, this.rectangles, this.balls))
-					ball.randomizePos();
-				ball.collides = 0;
-			} else {
-				ball.move('x');
-				ball.move('y');
-			}
+			ball.move('x');
+			ball.move('y');
 
 			ball.updateRealPosition();
 		}
