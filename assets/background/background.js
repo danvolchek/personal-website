@@ -183,7 +183,6 @@ class Ball {
 		this.color = color;
 		this.xVel = xVel;
 		this.yVel = yVel;
-		this.collides = 0;
 
 		this.element = this.createElement(container, this.halfWidth, xPos, yPos, xVel, yVel, color);
 	}
@@ -319,8 +318,6 @@ class Ball {
 		if (collision.yCollision) {
 			this.yVel *= -1;
 		}
-
-		this.collides++;
 	}
 
 	/**
