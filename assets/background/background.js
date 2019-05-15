@@ -1,5 +1,8 @@
 'use strict';
 
+// Only run half the time at double speed.
+const SKIP_FRAMES = 2;
+
 /**
  * Represents an RGBA color.
  */
@@ -181,8 +184,8 @@ class Ball {
 		this.xPos = xPos;
 		this.yPos = yPos;
 		this.color = color;
-		this.xVel = xVel;
-		this.yVel = yVel;
+		this.xVel = xVel * SKIP_FRAMES;
+		this.yVel = yVel * SKIP_FRAMES;
 
 		this.element = this.createElement(container, this.halfWidth, xPos, yPos, xVel, yVel, color);
 	}
@@ -356,6 +359,7 @@ class Background {
 	 */
 	constructor(container) {
 		this.container = container;
+		this.frameCounter = 0;
 
 		// Set up resize handling.
 		this.onWindowResize();
@@ -375,7 +379,10 @@ class Background {
 	 * Advances the simulation one step, then queues itself for further simulation.
 	 */
 	tick() {
-		this.update();
+		if (++this.frameCounter == SKIP_FRAMES){
+			this.update();
+			this.frameCounter = 0;
+		}
 
 		DOMInterface.queueNextFrame(this.tick.bind(this));
 	}
