@@ -1,5 +1,8 @@
 'use strict';
 
+// Only run half the time at double speed.
+const SKIP_FRAMES = 2;
+
 /**
  * Represents an RGBA color.
  */
@@ -167,51 +170,48 @@ class CollisionInfo {
 class Ball {
 	/**
 	 * Constructs an instance.
-	 * @param  {float}  width The width.
-	 * @param  {float}  xPos  The x position.
-	 * @param  {float}  yPos  The y position.
-	 * @param  {float}  xPos  The x velocity.
-	 * @param  {float}  yPos  The y velocity.
-	 * @param  {Color}  color The color.
+	 * @param  {SVG}    container The SVG to hold the ball.
+	 * @param  {float}  width     The width.
+	 * @param  {float}  xPos      The x position.
+	 * @param  {float}  yPos      The y position.
+	 * @param  {float}  xPos      The x velocity.
+	 * @param  {float}  yPos      The y velocity.
+	 * @param  {Color}  color     The color.
 	 */
-	constructor(width, xPos, yPos, xVel, yVel, color) {
+	constructor(container, width, xPos, yPos, xVel, yVel, color) {
 		this.width = width;
+		this.halfWidth = width / 2;
 		this.xPos = xPos;
 		this.yPos = yPos;
 		this.color = color;
-		this.xVel = xVel;
-		this.yVel = yVel;
-		this.collides = 0;
+		this.xVel = xVel * SKIP_FRAMES;
+		this.yVel = yVel * SKIP_FRAMES;
 
-		this.element = this.createElement(width, xPos, yPos, xVel, yVel, color);
+		this.element = this.createElement(container, this.halfWidth, xPos, yPos, xVel, yVel, color);
 	}
 
 	/**
-	 * Constructs an SVG for drawing the ball.
-	 * @param  {float}  width The width.
-	 * @param  {float}  xPos  The x position.
-	 * @param  {float}  yPos  The y position.
-	 * @param  {float}  xPos  The x velocity.
-	 * @param  {float}  yPos  The y velocity.
-	 * @param  {Color}  color The color.
-	 * @return {SVG}          The created SVG.
+	 * Constructs a circle for drawing the ball.
+	 * @param  {SVG}    container The SVG to hold the circle.
+	 * @param  {float}  halfWidth Half the width.
+	 * @param  {float}  xPos      The x position.
+	 * @param  {float}  yPos      The y position.
+	 * @param  {float}  xPos      The x velocity.
+	 * @param  {float}  yPos      The y velocity.
+	 * @param  {Color}  color     The color.
+	 * @return {SVG}              The created circle.
 	 */
-	createElement(width, xPos, yPos, xVel, yVel, color) {
+	createElement(container, halfWidth, xPos, yPos, xVel, yVel, color) {
 		let svgns = "http://www.w3.org/2000/svg";
-		let ball = document.createElementNS(svgns, "svg");
-		ball.setAttribute("width", width);
-		ball.setAttribute("height", width);
-		ball.setAttribute("style", `position: absolute; left: ${xPos}px; top: ${yPos}px;`);
-		ball.setAttribute("viewBox", "0 0 10 10");
 
 		let circle = document.createElementNS(svgns, "circle");
-		circle.setAttribute("cx", "5");
-		circle.setAttribute("cy", "5");
-		circle.setAttribute("r", "5");
+		circle.setAttribute("cx", xPos);
+		circle.setAttribute("cy", yPos);
+		circle.setAttribute("r", halfWidth);
 		circle.setAttribute("fill", color.value);
-		ball.appendChild(circle);
+		container.appendChild(circle);
 
-		return ball;
+		return circle;
 	}
 
 	/**
@@ -232,9 +232,14 @@ class Ball {
 			this.xPos += (backwards ? -1 : 1) * this.xVel;
 		else if (direction == 'y')
 			this.yPos += (backwards ? -1 : 1) * this.yVel;
+	}
 
-		this.element.style.left = `${this.xPos}px`
-		this.element.style.top = `${this.yPos}px`;
+	/**
+	 * Actually moves the ball based on the current xPos and yPos, triggering a repaint.
+	 */
+	updateRealPosition() {
+		this.element.setAttribute("cx", this.xPos + this.halfWidth);
+		this.element.setAttribute("cy", this.yPos + this.halfWidth);
 	}
 
 	/**
@@ -316,8 +321,6 @@ class Ball {
 		if (collision.yCollision) {
 			this.yVel *= -1;
 		}
-
-		this.collides++;
 	}
 
 	/**
@@ -326,14 +329,14 @@ class Ball {
 	 * @return {bool}           	 Whether a collision is happening.
 	 */
 	ballRectCollisionTest(rectangle) {
-		let closestX = Utils.clamp(this.xPos + (this.width / 2), rectangle.left, rectangle.right);
-		let closestY = Utils.clamp(this.yPos + (this.width / 2), rectangle.top, rectangle.bottom);
+		let closestX = Utils.clamp(this.xPos + this.halfWidth, rectangle.left, rectangle.right);
+		let closestY = Utils.clamp(this.yPos + this.halfWidth, rectangle.top, rectangle.bottom);
 
-		let distanceX = this.xPos + (this.width / 2) - closestX;
-		let distanceY = this.yPos + (this.width / 2) - closestY;
+		let distanceX = this.xPos + this.halfWidth - closestX;
+		let distanceY = this.yPos + this.halfWidth - closestY;
 
 		let distanceSquared = Math.pow(distanceX, 2) + Math.pow(distanceY, 2);
-		return distanceSquared < Math.pow(this.width / 2, 2);
+		return distanceSquared < Math.pow(this.halfWidth, 2);
 	}
 
 	/**
@@ -342,7 +345,7 @@ class Ball {
 	 * @return {bool}      Whether a collision is happening.
 	 */
 	ballBallCollisionTest(ball) {
-		return Math.hypot(this.xPos + (this.width / 2) - ball.xPos - (ball.width / 2), this.yPos + (this.width / 2) - ball.yPos - (ball.width / 2)) <= this.width / 2 + ball.width / 2;
+		return Math.hypot(this.xPos + this.halfWidth - ball.xPos - ball.halfWidth, this.yPos + this.halfWidth - ball.yPos - ball.halfWidth) <= this.halfWidth + ball.halfWidth;
 	}
 }
 
@@ -356,6 +359,7 @@ class Background {
 	 */
 	constructor(container) {
 		this.container = container;
+		this.frameCounter = 0;
 
 		// Set up resize handling.
 		this.onWindowResize();
@@ -366,7 +370,7 @@ class Background {
 		this.rectangles = this.createRectangles();
 		this.balls = this.createBalls();
 
-		for(let ball of this.balls){
+		for (let ball of this.balls) {
 			container.appendChild(ball.element);
 		}
 	}
@@ -375,7 +379,10 @@ class Background {
 	 * Advances the simulation one step, then queues itself for further simulation.
 	 */
 	tick() {
-		this.update();
+		if (++this.frameCounter == SKIP_FRAMES){
+			this.update();
+			this.frameCounter = 0;
+		}
 
 		DOMInterface.queueNextFrame(this.tick.bind(this));
 	}
@@ -388,6 +395,11 @@ class Background {
 	onWindowResize() {
 		this.rectangles = this.createRectangles();
 		this.adjustContainerSize();
+		if (this.balls != null)
+			for (let ball of this.balls) {
+				if (this.checkForCollisions(ball, this.rectangles, []))
+					ball.randomizePos();
+			}
 	}
 
 	/**
@@ -450,6 +462,7 @@ class Background {
 	 */
 	createRandomBall(shades, width) {
 		return new Ball(
+			this.container,
 			width,
 			Math.floor(Math.random() * DOMInterface.screenWidth - width),
 			Math.floor(Math.random() * DOMInterface.screenHeight - width),
@@ -496,16 +509,12 @@ class Background {
 			this.checkForCollisions(ball, this.rectangles, this.balls);
 		}
 
-		// Randomize the ball to a new spot if its been colliding too much, otherwise move it one step.
+		// Move each ball.
 		for (let ball of this.balls) {
-			if (ball.collides > 10) {
-				while(this.checkForCollisions(ball, this.rectangles, this.balls))
-					ball.randomizePos();
-				ball.collides = 0;
-			} else {
-				ball.move('x');
-				ball.move('y');
-			}
+			ball.move('x');
+			ball.move('y');
+
+			ball.updateRealPosition();
 		}
 	}
 }
