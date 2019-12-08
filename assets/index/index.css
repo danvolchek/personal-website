@@ -30,15 +30,15 @@
 }
  
 body, html {
-  background: #133b7a;
-  color: #bec5d1;
+  background: #181A1B;
+  color: #CDC9C2;
   font-family: 'Inconsolata', monospace;
   text-align: center;
   user-select: none;
 }
 
 a {
-  color: #bec5d1;
+  color: #CDC9C2;
   font-size: 130%;
 }
 
