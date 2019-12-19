@@ -20,18 +20,30 @@ class Color {
 		this.value = this.computeValue();
 	}
 
+	/**
+	 * Shifts the hue of this color.
+	 * @return {float} The new hue.
+	 */
 	shiftHue() {
 		this.h = (this.h + 0.2) % 360;
 		this.value = this.computeValue();
 		return this.value;
 	}
 
-	computeValue() {
-		return `hsl(${this.h}, ${this.s}%, ${this.l}%)`;
-	}
-
+	/**
+	 * Clones this color.
+	 * @return {Color} An identical color.
+	 */
 	clone() {
 		return new Color(this.h, this.s, this.l)
+	}
+
+	/**
+	 * Computes the value of this color in a way the rendering engine understands.
+	 * @return {string} This color as a string.
+	 */
+	computeValue() {
+		return `hsl(${this.h}, ${this.s}%, ${this.l}%)`;
 	}
 }
 
@@ -51,18 +63,8 @@ class Utils {
 	}
 
 	/**
-	 * A modulo implementaiton that handles negative numbers correctly.
-	 * @param  {float} dividend The dividend.
-	 * @param  {float} divisor The divisor.
-	 * @return {float}   The remainder.
-	 */
-	static modulo(dividend, divisor) {
-		return ((dividend % divisor) + divisor) % divisor;
-	}
-
-	/**
-	 * Returns an array of nice looking shades of blue.
-	 * @return {string[]} An array of shades of blue.
+	 * Returns an array of nice looking shades of a random color.
+	 * @return {string[]} An array of shades of a color.
 	 */
 	static createShades() {
 		let startHue = Math.random() * 360;
@@ -377,7 +379,6 @@ class Background {
 	constructor(container) {
 		this.container = container;
 		this.frameCounter = 0;
-		this.shades = Utils.createShades();
 
 		// Set up resize handling.
 		this.onWindowResize();
@@ -459,8 +460,10 @@ class Background {
 
 		let numBalls = 12;
 
+		let shades = Utils.createShades();
+
 		for (let i = 0; i < numBalls; i++) {
-			balls.push(this.createRandomBall(this.shades, Math.floor(3 * Math.random() * 20) + 20));
+			balls.push(this.createRandomBall(shades, Math.floor(3 * Math.random() * 20) + 20));
 		}
 
 		for (let ball of balls) {
