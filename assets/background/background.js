@@ -4,23 +4,34 @@
 const SKIP_FRAMES = 2;
 
 /**
- * Represents an RGBA color.
+ * Represents an HSL color.
  */
 class Color {
 	/**
 	 * Constructs an instance.
-	 * @param  {float} red   The red value.
-	 * @param  {float} green The green value.
-	 * @param  {float} blue  The blue value.
-	 * @param  {float} alpha The alpha value.
+	 * @param  {float} h The hue.
+	 * @param  {float} s The saturation.
+	 * @param  {float} l The lightness.
 	 */
-	constructor(red, green, blue, alpha) {
-		this.red = red;
-		this.green = green;
-		this.blue = blue;
-		this.alpha = alpha;
+	constructor(h, s, l) {
+		this.h = h % 360;
+		this.s = s;
+		this.l = l;
+		this.value = this.computeValue();
+	}
 
-		this.value = `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
+	shiftHue() {
+		this.h = (this.h + 0.2) % 360;
+		this.value = this.computeValue();
+		return this.value;
+	}
+
+	computeValue() {
+		return `hsl(${this.h}, ${this.s}%, ${this.l}%)`;
+	}
+
+	clone() {
+		return new Color(this.h, this.s, this.l)
 	}
 }
 
@@ -53,8 +64,9 @@ class Utils {
 	 * Returns an array of nice looking shades of blue.
 	 * @return {string[]} An array of shades of blue.
 	 */
-	static get blueShades() {
-		return [new Color(66, 146, 198, 1), new Color(33, 113, 181, 1), new Color(8, 81, 156, 1), new Color(8, 48, 107, 1), new Color(8, 48, 107, 1)];
+	static createShades() {
+		let startHue = Math.random() * 360;
+		return [new Color(startHue, 66.7, 77.6), new Color(startHue + 4, 81.8, 71.0), new Color(startHue + 6, 94.9, 61.2), new Color(startHue + 12, 92.5, 42.0), new Color(startHue + 12, 92.5, 42.0)];
 	}
 }
 
@@ -186,6 +198,7 @@ class Ball {
 		this.color = color;
 		this.xVel = xVel * SKIP_FRAMES;
 		this.yVel = yVel * SKIP_FRAMES;
+		this.color = color;
 
 		this.element = this.createElement(container, this.halfWidth, xPos, yPos, xVel, yVel, color);
 	}
@@ -262,6 +275,10 @@ class Ball {
 		this.handleCollision(collision);
 
 		return collision != null;
+	}
+
+	shiftHue() {
+		this.element.setAttribute("fill", this.color.shiftHue());
 	}
 
 	/* Private Methods */
@@ -360,6 +377,7 @@ class Background {
 	constructor(container) {
 		this.container = container;
 		this.frameCounter = 0;
+		this.shades = Utils.createShades();
 
 		// Set up resize handling.
 		this.onWindowResize();
@@ -442,7 +460,7 @@ class Background {
 		let numBalls = 12;
 
 		for (let i = 0; i < numBalls; i++) {
-			balls.push(this.createRandomBall(Utils.blueShades, Math.floor(3 * Math.random() * 20) + 20));
+			balls.push(this.createRandomBall(this.shades, Math.floor(3 * Math.random() * 20) + 20));
 		}
 
 		for (let ball of balls) {
@@ -468,7 +486,7 @@ class Background {
 			Math.floor(Math.random() * DOMInterface.screenHeight - width),
 			(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
 			(Math.floor(Math.random() * 2) * 2 - 1) * 0.5,
-			shades[Math.floor(Math.random() * shades.length)]);
+			shades[Math.floor(Math.random() * shades.length)].clone());
 	}
 
 	/**
@@ -515,6 +533,8 @@ class Background {
 			ball.move('y');
 
 			ball.updateRealPosition();
+
+			ball.shiftHue();
 		}
 	}
 }
