@@ -285,6 +285,9 @@ class Ball {
 		return collision != null;
 	}
 
+	/**
+	 * Shifts the hue of this ball.
+	 */
 	shiftHue() {
 		this.element.setAttribute("fill", this.color.shiftHue());
 	}
