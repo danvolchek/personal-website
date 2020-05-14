@@ -3,6 +3,12 @@
 // Only run half the time at double speed.
 const SKIP_FRAMES = 2;
 
+// X movement direction
+const X_DIR = 0;
+
+// Y movement direction
+const Y_DIR = 1;
+
 /**
  * Represents an HSL color.
  */
@@ -239,13 +245,13 @@ class Ball {
 
 	/**
 	 * Moves the ball.
-	 * @param  {string}  direction Which direction to movie in. Either 'x' or 'y'.
+	 * @param  {string}  direction Which direction to movie in. Either X_DIR or Y_DIR.
 	 * @param  {Boolean} backwards Whether to move the ball backwards or not.
 	 */
 	move(direction, backwards = false) {
-		if (direction == 'x')
+		if (direction == X_DIR)
 			this.xPos += (backwards ? -1 : 1) * this.xVel;
-		else if (direction == 'y')
+		else if (direction == Y_DIR)
 			this.yPos += (backwards ? -1 : 1) * this.yVel;
 	}
 
@@ -310,12 +316,12 @@ class Ball {
 
 		// Move the ball, check if there will be a collision, then move it back.
 
-		this.move('x');
+		this.move(X_DIR);
 		collisionX = method(element);
-		this.move('x', true);
-		this.move('y');
+		this.move(X_DIR, true);
+		this.move(Y_DIR);
 		collisionY = method(element);
-		this.move('y', true);
+		this.move(Y_DIR, true);
 
 		if (collisionX || collisionY) {
 			return new CollisionInfo(collisionX, collisionY);
@@ -532,8 +538,8 @@ class Background {
 
 		// Move each ball.
 		for (let ball of this.balls) {
-			ball.move('x');
-			ball.move('y');
+			ball.move(X_DIR);
+			ball.move(Y_DIR);
 
 			ball.updateRealPosition();
 
