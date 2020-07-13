@@ -140,24 +140,7 @@ class DOMInterface {
 	 * @return {Rectangle[]} An array of rectangles.
 	 */
 	static findTextRectangles() {
-		let rectangles = [];
-
-		// My name, with some adjustments for the chosen font.
-		let nameRect = document.getElementById('name').getBoundingClientRect();
-		rectangles.push(new Rectangle(
-			nameRect.left + 4,
-			nameRect.top + 15,
-			nameRect.right,
-			nameRect.bottom - 15
-		));
-
-		// Text blurb.
-		rectangles.push(this.DOMRectToRecangle(document.getElementsByTagName('span')[0].getBoundingClientRect()));
-
-		// Links.
-		rectangles.push(...Array.from(document.getElementsByTagName('a'), anchor => this.DOMRectToRecangle(anchor.getBoundingClientRect())));
-
-		return rectangles;
+		return Array.from(document.getElementsByClassName('collides'), elem => this.DOMRectToRecangle(elem.getBoundingClientRect()));
 	}
 
 	/**
