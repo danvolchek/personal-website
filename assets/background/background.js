@@ -405,7 +405,7 @@ class Background {
 	 */
 	onWindowResize() {
 		this.rectangles = this.createRectangles();
-		this.adjustContainerSize();
+
 		if (this.balls != null)
 			for (let ball of this.balls) {
 				if (this.checkForCollisions(ball, this.rectangles, []))
@@ -450,7 +450,7 @@ class Background {
 	createBalls() {
 		let balls = [];
 
-		let numBalls = 12;
+		let numBalls = 6;
 
 		let shades = Utils.createShades();
 
