@@ -61,11 +61,11 @@ var projects = []project{
             </ul>
 			<p> The script: </p>
 			<ul>
-				<li>Using a list of projects and descriptions generates the projects overview section and this and other project details sections.</li>
-				<li>By dynamically querying the host where I host my Stardew Valley mods updates the usage information.</li>
+				<li>Generates the projects overview and details sections using a list of projects and descriptions.</li>
+				<li>Updates the Stardew Valley mod list (including usage statistics) by dynamically querying the website where I host my Stardew Valley mods.</li>
 			</ul>            
 			<p>
-                Together, this makes keeping this website up to date with new projects and mod usage statistics easy.
+                The script makes keeping this website up to date with new projects and Stardew Valley mods easy.
             </p>`,
 	},
 	{
@@ -75,9 +75,12 @@ var projects = []project{
 		ShortDescription: "Games for the retro fantasy console",
 		LongDescription: `
  			<p>
-                <a target="_blank" href="https://www.lexaloffle.com/pico-8.php">Pico-8</a> is a retro fantasy console. In other words, it's a programming environment that replicates the limited hardware capabilities
-				of old game consoles, along with an easy way to draw graphics.
+                <a target="_blank" href="https://www.lexaloffle.com/pico-8.php">Pico-8</a> is a retro fantasy console. In other words, it's a programming environment that:
             </p>
+			<ul>
+				<li>replicates the limited hardware capabilities of old game consoles (cpu, ram, screen resolution)</li>
+				<li>allows primitive graphics to be drawn easily (lines, circles, etc)</li>
+			</ul>
 			<p>
                 It provides a fun challenge: create video games in a constrained environment. Below is a list of the games, or carts, that I've made.
             </p>`,
@@ -88,7 +91,7 @@ var projects = []project{
 					<div>
 						<div>Beecells</div>
 						<div>Bee themed hexagonal minesweeper</div>
-						<div><a target="_blank" href="#">click here</a></div>
+						<div>link pending</div>
 					</div>
 				</div>
 			</div>`,
@@ -119,6 +122,9 @@ var projects = []project{
  			<p>
                 This was a project for a university course on the Internet of Things. I created an Android app  + 3d-printed hardware mount for my apartment front door that allowed it to be opened remotely.
             </p>
+			<p>
+				I took security into account, ensuring that only pre-approved users would be able to open the door (through pre-shared private keys), and that replay attacks would not be possible (through timestamps). 
+			</p>
 			<p>
                 It was fun and a great introduction to hardware (3d printing, Arduino), but ultimately ended up not being very practical.
             </p>
