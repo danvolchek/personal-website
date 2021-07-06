@@ -22,7 +22,7 @@ var tmplDesc = template.Must(template.New("project-descriptions").
 <div>
 	<div>{{.Name}}</div>
 	<div>{{.ShortDescription}}</div>
-	<div><a data-project-link="{{.Id}}">more details</a></div>
+	<div><a href="#{{.Id}}">more details</a></div>
 </div>
 {{- end}}
 

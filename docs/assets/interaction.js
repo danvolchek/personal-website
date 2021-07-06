@@ -1,10 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const projectLinks = document.querySelectorAll("[data-project-link]");
-
-    for (const projectLink of projectLinks) {
-        projectLink.onclick = handleProjectLinkClick;
-    }
-
     const projects = document.querySelectorAll("[data-project]");
 
     for (const project of projects) {
@@ -30,10 +24,6 @@ function handleHashChange(event) {
     } else {
         transition(oldHash, newHash, false);
     }
-}
-
-function handleProjectLinkClick(event) {
-    transition(window.location.hash.substring(1), getAttribute(event.target, "data-project-link"), false)
 }
 
 function transition(from, to, immediate) {
