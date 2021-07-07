@@ -16,10 +16,6 @@ a {
     color: #3f7c96;
 }
 
-a[data-project-link] {
-    cursor: pointer;
-}
-
 .emphasis {
     font-weight: bold;
     color: #388635;

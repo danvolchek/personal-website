@@ -1,49 +1,63 @@
 document.addEventListener('DOMContentLoaded', function () {
     const projects = document.querySelectorAll("[data-project]");
-
     for (const project of projects) {
         project.onanimationend = handleAnimationEnd;
+    }
+
+    const links = document.querySelectorAll(`a[href^="#"]`);
+    for (const link of links) {
+        link.onclick = handleProjectLinkClick;
     }
 
     window.onhashchange = handleHashChange;
 
     const currentHash = window.location.hash.substring(1);
     if (isValidProject(currentHash)) {
-        transition("", currentHash, true)
+        transitionImmediate("", currentHash)
     } else {
         window.location.hash = "";
     }
 });
+
+function handleProjectLinkClick(event) {
+    const anyAnimating = document.querySelector(".fadeIn, .fadeOut") != null;
+
+    if (anyAnimating) {
+        event.preventDefault();
+    }
+}
 
 function handleHashChange(event) {
     const oldHash = new URL(event.oldURL).hash.substring(1);
     const newHash = window.location.hash.substring(1);
 
     if (!isValidProject(newHash)) {
-        transition(oldHash, "", false);
+        transition(oldHash, "");
     } else {
-        transition(oldHash, newHash, false);
+        transition(oldHash, newHash);
     }
 }
 
-function transition(from, to, immediate) {
-    const anyAnimating = document.querySelector(".fadeIn, .fadeOut") != null;
-
-    if (anyAnimating || from === to || !isValidProject(to)) {
+function transition(from, to) {
+    if (from === to) {
         return;
     }
 
-    const activeProject = document.querySelector(`[data-project="${from}"]`);
+    const fromProject = getProject(from);
+    const toProject = getProject(to);
 
-    const clickedProject = document.querySelector(`[data-project="${to}"]`);
+    fromProject?.classList.add("fadeOut");
+    toProject.classList.add("fadeIn");
 
-    if (immediate) {
-        activeProject?.classList.add("hidden")
-        clickedProject.classList.remove("hidden")
-    } else {
-        activeProject?.classList.add("fadeOut");
-        clickedProject.classList.add("fadeIn");
-    }
+    window.location.hash = to;
+}
+
+function transitionImmediate(from, to) {
+    const fromProject = getProject(from);
+    const toProject = getProject(to);
+
+    fromProject.classList.add("hidden")
+    toProject.classList.remove("hidden")
 
     window.location.hash = to;
 }
@@ -59,10 +73,14 @@ function handleAnimationEnd(event) {
     }
 }
 
-function getAttribute(element, name) {
-    return element.attributes.getNamedItem(name).value;
+function getProject(id) {
+    return document.querySelector(`[data-project="${id}"]`)
 }
 
 function isValidProject(id) {
-    return Array.from(document.querySelectorAll(`[data-project]`)).map(a => getAttribute(a, "data-project")).includes(id);
+    const projects = Array.from(document.querySelectorAll(`[data-project]`));
+    const projectIds = projects.map(project => {
+        return project.attributes.getNamedItem("data-project").value
+    })
+    return projectIds.includes(id);
 }
