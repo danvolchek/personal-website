@@ -37,6 +37,15 @@ a:hover {
     display: none;
 }
 
+.icon {
+    height: 20px;
+    margin-right: 5px;
+}
+
+.flex {
+    display: flex;
+}
+
 
 @keyframes fadeInKF {
     0% {
