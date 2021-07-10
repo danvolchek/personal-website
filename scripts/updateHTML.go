@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/danvolchek/personal-website/scripts/html"
-	"github.com/danvolchek/personal-website/scripts/mod"
-	"github.com/danvolchek/personal-website/scripts/projects"
+	"github.com/danvolchek/personal-website/scripts/fillers"
 	"os"
 )
 
 func main() {
-	err := updateHTML()
+	err := run()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -18,23 +16,20 @@ func main() {
 	fmt.Println("Updated! Make sure to run a format to clean up the generated HTML.")
 }
 
-func updateHTML() error {
-	replacer, err := html.NewReplacer("html/base.html", "../docs/index.html")
+func run() error {
+	replacer, err := NewReplacer("../data/base.html", "../docs/index.html")
 	if err != nil {
 		return err
 	}
 
-	err = updateProjects(replacer)
+	fillers, err := createFillers()
 	if err != nil {
 		return err
 	}
 
-	err = updateModDownloads(replacer)
-	if err != nil {
-		return err
-	}
+	replacer.Add(fillers)
 
-	err = replacer.AllReplaced()
+	err = replacer.Replace()
 	if err != nil {
 		return err
 	}
@@ -47,29 +42,23 @@ func updateHTML() error {
 	return nil
 }
 
-func updateModDownloads(replacer html.Replacer) error {
-	favoriteMods, otherMods, err := mod.GetAll("download_counts.csv")
+func createFillers() ([]Filler, error) {
+	projectsFiller, err := fillers.NewProjectsFiller("../data/projects.yaml")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for contentsId, replacement := range mod.GenerateReplacements(favoriteMods, otherMods) {
-		err = replacer.Replace(replacement, contentsId)
-		if err != nil {
-			return err
-		}
+	stardewFiller, err := fillers.NewStardewFiller("../data/mods.yaml", "../data/usage.csv")
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func updateProjects(replacer html.Replacer) error {
-	for contentsId, replacement := range projects.GenerateReplacements() {
-		err := replacer.Replace(replacement, contentsId)
-		if err != nil {
-			return err
-		}
+	pico8Filler, err := fillers.NewPico8Filler("../data/carts.yaml")
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return []Filler{
+		projectsFiller, stardewFiller, pico8Filler,
+	}, nil
 }

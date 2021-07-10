@@ -1,4 +1,4 @@
-package html
+package main
 
 import (
 	"fmt"
@@ -10,6 +10,8 @@ import (
 type Replacer struct {
 	path     string
 	contents *html.Node
+
+	fillers []Filler
 }
 
 func NewReplacer(base, path string) (Replacer, error) {
@@ -34,7 +36,29 @@ func NewReplacer(base, path string) (Replacer, error) {
 	}, nil
 }
 
-func (r Replacer) Replace(replacement []*html.Node, contentsId string) error {
+func (r *Replacer) Add(f []Filler) {
+	r.fillers = append(r.fillers, f...)
+}
+
+func (r Replacer) Replace() error {
+	for _, f := range r.fillers {
+		for contentsId, replacement := range f.Replacements() {
+			err := r.replace(replacement, f.Id()+"-"+contentsId)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err := r.allReplaced()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r Replacer) replace(replacement []*html.Node, contentsId string) error {
 	target := traverse(r.contents, func(node *html.Node) bool {
 		if node.Type != html.ElementNode {
 			return false
@@ -49,7 +73,7 @@ func (r Replacer) Replace(replacement []*html.Node, contentsId string) error {
 	})
 
 	if target == nil {
-		return fmt.Errorf("replacer: couldn't find existing node with data-contents attribute %s", contentsId)
+		return fmt.Errorf("replacer: couldn't find existing node with content id %s", contentsId)
 	}
 
 	removeContentId(target)
@@ -80,7 +104,14 @@ func (r Replacer) Write() error {
 	return nil
 }
 
-func (r Replacer) AllReplaced() error {
+func (r Replacer) DebugOut() {
+	err := html.Render(os.Stdout, r.contents)
+	if err != nil {
+		panic(fmt.Sprintf("replacer: couldn't render html: %s", err))
+	}
+}
+
+func (r Replacer) allReplaced() error {
 	var contentIds []string
 	traverse(r.contents, func(node *html.Node) bool {
 		if node.Type != html.ElementNode {
@@ -129,8 +160,8 @@ func children(node *html.Node) []*html.Node {
 
 func getContentId(node *html.Node) (string, bool) {
 	for _, attr := range node.Attr {
-		if attr.Key == "data-contents" {
-			return attr.Val, attr.Val != ""
+		if attr.Key == "data-content" {
+			return attr.Val, true
 		}
 	}
 
@@ -140,7 +171,7 @@ func getContentId(node *html.Node) (string, bool) {
 func removeContentId(node *html.Node) {
 	var result []html.Attribute
 	for _, attr := range node.Attr {
-		if attr.Key != "data-contents" {
+		if attr.Key != "data-content" {
 			result = append(result, attr)
 		}
 	}

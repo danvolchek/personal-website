@@ -90,7 +90,7 @@ a:hover {
     margin-bottom: 40px;
 }
 
-.section-image {
+.section p > img {
     max-width: 400px;
 }
 

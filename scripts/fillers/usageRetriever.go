@@ -1,4 +1,4 @@
-package mod
+package fillers
 
 import (
 	"bytes"
@@ -10,11 +10,17 @@ import (
 	"strconv"
 )
 
+type usage struct {
+	TotalDownloads  int
+	UniqueDownloads int
+	TotalViews      int
+}
+
 type usageRetriever struct {
 	path string
 }
 
-func (u usageRetriever) Retrieve() (map[string]Usage, error) {
+func (u usageRetriever) retrieve() (map[string]usage, error) {
 	var data []byte
 	var err error
 
@@ -64,7 +70,7 @@ func (u usageRetriever) read() ([]byte, error) {
 	return data, nil
 }
 
-func (u usageRetriever) parse(data []byte) (map[string]Usage, error) {
+func (u usageRetriever) parse(data []byte) (map[string]usage, error) {
 	reader := csv.NewReader(bytes.NewBuffer(data))
 	reader.FieldsPerRecord = 4
 
@@ -73,7 +79,7 @@ func (u usageRetriever) parse(data []byte) (map[string]Usage, error) {
 		return nil, fmt.Errorf("usage retriever: couldn't parse mod counts: %s", err)
 	}
 
-	usage := make(map[string]Usage)
+	modUsage := make(map[string]usage)
 
 	for _, record := range records {
 		modId := record[0]
@@ -93,14 +99,14 @@ func (u usageRetriever) parse(data []byte) (map[string]Usage, error) {
 			return nil, err
 		}
 
-		usage[modId] = Usage{
+		modUsage[modId] = usage{
 			TotalDownloads:  totalDownloads,
 			UniqueDownloads: uniqueDownloads,
 			TotalViews:      totalViews,
 		}
 	}
 
-	return usage, nil
+	return modUsage, nil
 }
 
 func (u usageRetriever) parseNumber(value, name string) (int, error) {
