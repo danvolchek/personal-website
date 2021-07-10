@@ -18,7 +18,7 @@ var tmplList = template.Must(template.New("mods-list").
 	<div>{{.Description}}</div>
 	<div>
 		<a target="_blank" href="https://www.nexusmods.com/stardewvalley/mods/{{.Id}}">
-			{{FormatDownloads .Usage.TotalDownloads true}}
+			{{- FormatDownloads .Usage.TotalDownloads true -}}
 		</a>
 	</div>
 </div>
@@ -68,7 +68,7 @@ var tmplDetail = template.Must(template.New("project-details").
 			<div>Project: {{.Name}}</div>
 			<a target="_blank" href="{{.SourceCode}}">source code</a>
 		</div>
-		{{.LongDescription}}
+		{{.LongDescription -}}
 	</div>
 	{{- range .Sections}}
 		<div class="section three-cols">
