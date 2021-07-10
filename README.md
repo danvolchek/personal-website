@@ -1,6 +1,6 @@
 # Personal Website
 
-Source code for [danvolchek.com](https://danvolchek.com).
+Source code for [https://danvolchek.com](https://danvolchek.com).
 
 Holds details about me and my projects.
 
@@ -31,7 +31,7 @@ Each content filler follows similar steps:
 The HTML replacer handles inserting the generated HTML in the right places in the document. It's based on the idea of
 replacing placeholder elements with real content.
 
-It:
+The replacer follows these steps:
 
 1. Loads a base HTML file to start from
 1. Using "content ids" from the fillers, searches for corresponding `data-content="id"` tags on placeholder elements in the HTML
