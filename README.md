@@ -39,8 +39,15 @@ The replacer follows these steps:
 1. When found, replaces the content of the placeholder elements with the output from the fillers, and removes the tag
 1. Writes a new HTML file after all placeholder elements have been replaced
 
-
 Generated HTML from the fillers can itself hold placeholder elements. This allows for the projects filler to contain layout
 for all projects, including where the stardew filler should place it's generated mods list. Nifty!
 
-The update script should be run with a working directory of the root of the repo.
+The generator script should be run with a working directory of the root of the repo:
+```shell script
+go run generate.go
+```
+
+The site can be previewed by running the preview script (also with a working directory of the root of the repo):
+```shell script
+go run preview.go
+```
