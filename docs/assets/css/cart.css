@@ -1,0 +1,12 @@
+@import "style.css";
+
+iframe {
+    width: 95vw;
+    border: none;
+    height: 95vh;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+}

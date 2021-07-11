@@ -1,88 +1,61 @@
 package fillers
 
 import (
+	"bytes"
 	"fmt"
+	"golang.org/x/net/html"
 	"html/template"
+	"path/filepath"
 	"strconv"
 )
 
-var tmplList = template.Must(template.New("mods-list").
-	Funcs(map[string]interface{}{
+type templateHolder struct {
+	pico8Carts *template.Template
+	pico8Play  *template.Template
+
+	projectDescriptions *template.Template
+	projectDetails      *template.Template
+
+	stardewMods *template.Template
+}
+
+var templates templateHolder
+
+func InitTemplates(path string) {
+	templates.pico8Carts = templateFromFile(path, "pico8Carts.html")
+	templates.pico8Play = templateFromFile(path, "pico8Play.html")
+
+	templates.projectDescriptions = templateFromFile(path, "projectDescriptions.html")
+	templates.projectDetails = templateFromFile(path, "projectDetails.html")
+
+	templates.stardewMods = templateFromFileFuncs(path, "stardewMods.html", map[string]interface{}{
 		"FormatDownloads": formatDownloads,
-	}).
-	Parse(`{{/* trim start */ -}}
+	})
+}
 
-{{- range .}}
-<div>
-	<div>{{.Name}}</div>
-	<div>{{.Description}}</div>
-	<div>
-		<a target="_blank" href="https://www.nexusmods.com/stardewvalley/mods/{{.Id}}">
-			{{- FormatDownloads .Usage.TotalDownloads true -}}
-		</a>
-	</div>
-</div>
-{{- end}}
+func templateFromFile(path, name string) *template.Template {
+	return templateFromFileFuncs(path, name, nil)
+}
 
-{{- /* trim end */}}`))
+func templateFromFileFuncs(path, name string, funcs map[string]interface{}) *template.Template {
+	tmpl := template.New(name)
+	if funcs != nil {
+		tmpl.Funcs(funcs)
+	}
 
-var tmplCarts = template.Must(template.New("pico-8-carts").
-	Parse(`{{/* trim start */ -}}
+	return template.Must(tmpl.ParseFiles(filepath.Join(path, name)))
+}
 
-{{- range .}}
-<div>
-	<div>{{.Name}}</div>
-	<div>{{.Description}}</div>
-	<div>
-		{{- if ne .Link "" -}}
-			<a target="_blank" href="{{.Link}}">Play!</a>
-		{{- else -}}
-			link pending
-		{{- end -}}
-	</div>
-</div>
-{{- end}}
+func executeTemplate(template *template.Template, data interface{}) []*html.Node {
+	buffer := bytes.NewBuffer(nil)
 
-{{- /* trim end */}}`))
+	err := template.Execute(buffer, data)
+	if err != nil {
+		panic(err)
+	}
 
-var tmplDesc = template.Must(template.New("project-descriptions").
-	Parse(`{{/* trim start */ -}}
-
-{{- range .}}
-<div>
-	<div>{{.Name}}</div>
-	<div>{{.ShortDescription}}</div>
-	<div><a href="#{{.Id}}">more details</a></div>
-</div>
-{{- end}}
-
-{{- /* trim end */}}`))
-
-var tmplDetail = template.Must(template.New("project-details").
-	Parse(`{{/* trim start */ -}}
-
-{{- range .}}
-<div class="hidden" data-project="{{.Id}}">
-	<div class="section">
-		<div class="header-with-link">
-			<div>Project: {{.Name}}</div>
-			<a target="_blank" href="{{.SourceCode}}">source code</a>
-		</div>
-		{{.LongDescription -}}
-	</div>
-	{{- range .Sections}}
-		<div class="section three-cols">
-			<div>{{.Name}}</div>
-			<div data-content="{{.Id}}"></div>
-		</div>
-	{{- end}}
-</div>
-{{- end}}
-<div data-project="">
-	<p>Click on a project to learn more</p>
-</div>
-
-{{- /* trim end */}}`))
+	return parseHTML(buffer)
+}
 
 func formatDownloads(downloads int, short bool) string {
 	if downloads < 1000 {

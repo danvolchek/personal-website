@@ -1,15 +1,21 @@
 package fillers
 
 import (
-	"bytes"
 	"golang.org/x/net/html"
 	"gopkg.in/yaml.v2"
 	"os"
 )
 
+type cartData struct {
+	Repo   string
+	Branch string
+	Carts  []pico8Cart
+}
+
 type pico8Cart struct {
 	Name        string
 	Description string
+	Path        string
 	Link        string
 }
 
@@ -17,21 +23,35 @@ type pico8Filler struct {
 	carts []pico8Cart
 }
 
-func NewPico8Filler(cartsPath string) (*pico8Filler, error) {
-	var carts []pico8Cart
+func NewPico8Filler(cartsPath, outputPath string) (*pico8Filler, error) {
+	var data cartData
 
-	data, err := os.ReadFile(cartsPath)
+	raw, err := os.ReadFile(cartsPath)
 	if err != nil {
 		return nil, err
 	}
 
-	err = yaml.Unmarshal(data, &carts)
+	err = yaml.Unmarshal(raw, &data)
 	if err != nil {
 		return nil, err
+	}
+
+	retriever := cartRetriever{
+		repo:       data.Repo,
+		branch:     data.Branch,
+		outputPath: outputPath,
+	}
+
+	for i, cart := range data.Carts {
+		err := retriever.Retrieve(cart.Name, cart.Path)
+		if err != nil {
+			return nil, err
+		}
+		data.Carts[i].Link = "/pico8/" + cart.Path
 	}
 
 	return &pico8Filler{
-		carts: carts,
+		carts: data.Carts,
 	}, nil
 }
 
@@ -40,14 +60,7 @@ func (p pico8Filler) Id() string {
 }
 
 func (p pico8Filler) Replacements() map[string][]*html.Node {
-	buffer := bytes.NewBuffer(nil)
-
-	err := tmplCarts.Execute(buffer, p.carts)
-	if err != nil {
-		panic(err)
-	}
-
 	return map[string][]*html.Node{
-		"carts": parseHTML(buffer),
+		"carts": executeTemplate(templates.pico8Carts, p.carts),
 	}
 }

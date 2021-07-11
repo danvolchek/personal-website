@@ -1,7 +1,6 @@
 package fillers
 
 import (
-	"bytes"
 	"golang.org/x/net/html"
 	"gopkg.in/yaml.v2"
 	"html/template"
@@ -39,8 +38,12 @@ func NewProjectsFiller(projectsPath string) (*projectsFiller, error) {
 		return nil, err
 	}
 
-	for i := range projects {
-		projects[i].LongDescription = parseMarkdown(projects[i].LongDescription)
+	for i, project := range projects {
+		projects[i].LongDescription = parseMarkdown(project.LongDescription)
+
+		for j, section := range project.Sections {
+			project.Sections[j].Id = project.Id + "-" + section.Id
+		}
 	}
 
 	return &projectsFiller{
@@ -54,29 +57,7 @@ func (p projectsFiller) Id() string {
 
 func (p projectsFiller) Replacements() map[string][]*html.Node {
 	return map[string][]*html.Node{
-		"descriptions": p.generateDescriptions(),
-		"details":      p.generateDetails(),
+		"descriptions": executeTemplate(templates.projectDescriptions, p.projects),
+		"details":      executeTemplate(templates.projectDetails, p.projects),
 	}
-}
-
-func (p projectsFiller) generateDescriptions() []*html.Node {
-	buffer := bytes.NewBuffer(nil)
-
-	err := tmplDesc.Execute(buffer, p.projects)
-	if err != nil {
-		panic(err)
-	}
-
-	return parseHTML(buffer)
-}
-
-func (p projectsFiller) generateDetails() []*html.Node {
-	buffer := bytes.NewBuffer(nil)
-
-	err := tmplDetail.Execute(buffer, p.projects)
-	if err != nil {
-		panic(err)
-	}
-
-	return parseHTML(buffer)
 }

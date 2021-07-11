@@ -1,4 +1,4 @@
-- id: stardew-valley-mods
+- id: stardew
   name: Stardew Valley mods
   sourcecode: https://github.com/danvolchek/StardewMods
   shortdescription: Modifications for the farming simulator video game
@@ -17,9 +17,9 @@
     (Data last updated: <span data-content="stardew-update-date"></span>)
   sections:
     - name: "Stardew Valley Mods: Favorites"
-      id: stardew-favorites
+      id: favorites
     - name: "Stardew Valley Mods: Other"
-      id: stardew-other
+      id: other
 
 - id: personal-website
   name: This website
@@ -34,7 +34,7 @@
     Beyond the static website generator, it uses plain HTML, CSS, and JS. The end result is a ~26KB (+ one ~356KB image)
     download!
 
-- id: pico-8
+- id: pico8
   name: Pico-8
   sourcecode: https://github.com/danvolchek/pico-8
   shortdescription: Games for the retro fantasy console
@@ -43,9 +43,11 @@
     programming environment that replicates the limited hardware capabilities of old game consoles (cpu, ram, screen resolution, etc).
 
     It provides a fun challenge: create video games in a constrained environment. Below is a list of the games, or carts, that I've made.
+
+    Carts can be played in your browser!
   sections:
     - name: "Pico 8: Carts"
-      id: pico8-carts
+      id: carts
 
 - id: advent-of-code
   name: Advent of code

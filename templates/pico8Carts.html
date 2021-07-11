@@ -1,0 +1,13 @@
+{{- range .}}
+    <div>
+        <div>{{.Name}}</div>
+        <div>{{.Description}}</div>
+        <div>
+            {{- if ne .Link "" -}}
+                <a target="_blank" href="{{.Link}}">play</a>
+            {{- else -}}
+                link pending
+            {{- end -}}
+        </div>
+    </div>
+{{- end}}

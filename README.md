@@ -15,16 +15,17 @@ Generation happens in two stages:
 
 The process centers around "content fillers", or components that know how to retrieve data and then display it.
 There's one for every logical unit of replacement:
-- projects
-- stardew mods
-- pico-8 carts
+- Projects
+- Stardew Valley mods
+- Pico-8 carts
 
 Each content filler follows similar steps:
 
 1. Load data from YAML files
 1. Augment data as necessary
-    - E.g. the projects filler parses project descriptions from markdown
-    - E.g. the stardew filler downloads current mod usage statistics
+    - The projects filler parses project descriptions from markdown
+    - The Stardew Valley filler downloads current mod usage statistics
+    - The Pico-8 filler retrieves carts compiled to HTML so they can be played
 1. Transform the data into HTML
 1. Provide new HTML nodes to the HTML replacer
 

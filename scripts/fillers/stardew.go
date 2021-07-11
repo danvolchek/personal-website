@@ -1,7 +1,6 @@
 package fillers
 
 import (
-	"bytes"
 	"fmt"
 	"golang.org/x/net/html"
 	"gopkg.in/yaml.v2"
@@ -73,14 +72,14 @@ func (s stardewFiller) Id() string {
 
 func (s stardewFiller) Replacements() map[string][]*html.Node {
 	return map[string][]*html.Node{
-		"favorites":   s.generateList(s.Favorites),
-		"other":       s.generateList(s.Other),
+		"favorites":   executeTemplate(templates.stardewMods, s.createModsMap(s.Favorites)),
+		"other":       executeTemplate(templates.stardewMods, s.createModsMap(s.Other)),
 		"total":       s.generateTotalDownloads(),
 		"update-date": s.generateUpdateDate(),
 	}
 }
 
-func (s stardewFiller) generateList(mods []details) []*html.Node {
+func (s stardewFiller) createModsMap(mods []details) map[string]details {
 	// the template package's range action iterates in sorted key order over maps
 	// so create one here to get alphabetical order
 	modsByName := make(map[string]details, len(mods))
@@ -88,14 +87,7 @@ func (s stardewFiller) generateList(mods []details) []*html.Node {
 		modsByName[mod.Name] = mod
 	}
 
-	buffer := bytes.NewBuffer(nil)
-
-	err := tmplList.Execute(buffer, modsByName)
-	if err != nil {
-		panic(err)
-	}
-
-	return parseHTML(buffer)
+	return modsByName
 }
 
 func (s stardewFiller) generateTotalDownloads() []*html.Node {

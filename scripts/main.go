@@ -17,7 +17,7 @@ func main() {
 }
 
 func run() error {
-	replacer, err := NewReplacer("../data/base.html", "../docs/index.html")
+	replacer, err := NewReplacer("../templates/base.html", "../docs/index.html")
 	if err != nil {
 		return err
 	}
@@ -43,6 +43,8 @@ func run() error {
 }
 
 func createFillers() ([]Filler, error) {
+	fillers.InitTemplates("../templates")
+
 	projectsFiller, err := fillers.NewProjectsFiller("../data/projects.yaml")
 	if err != nil {
 		return nil, err
@@ -53,7 +55,7 @@ func createFillers() ([]Filler, error) {
 		return nil, err
 	}
 
-	pico8Filler, err := fillers.NewPico8Filler("../data/carts.yaml")
+	pico8Filler, err := fillers.NewPico8Filler("../data/carts.yaml", "../docs/pico8")
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,20 @@
+{{- range .}}
+    <div class="hidden" data-project="{{.Id}}">
+        <div class="section">
+            <div class="header-with-link">
+                <div>Project: {{.Name}}</div>
+                <a target="_blank" href="{{.SourceCode}}">source code</a>
+            </div>
+            {{.LongDescription -}}
+        </div>
+        {{- range .Sections}}
+            <div class="section three-cols">
+                <div>{{.Name}}</div>
+                <div data-content="{{.Id}}"></div>
+            </div>
+        {{- end}}
+    </div>
+{{- end}}
+<div data-project="">
+    <p>Click on a project to learn more</p>
+</div>

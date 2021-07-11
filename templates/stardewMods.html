@@ -1,0 +1,11 @@
+{{- range .}}
+    <div>
+        <div>{{.Name}}</div>
+        <div>{{.Description}}</div>
+        <div>
+            <a target="_blank" href="https://www.nexusmods.com/stardewvalley/mods/{{.Id}}">
+                {{- FormatDownloads .Usage.TotalDownloads true -}}
+            </a>
+        </div>
+    </div>
+{{- end}}
