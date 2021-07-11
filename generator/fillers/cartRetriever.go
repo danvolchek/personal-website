@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -21,7 +22,7 @@ type tmplData struct {
 	Path string
 }
 
-func (c cartRetriever) Retrieve(name, path string) error {
+func (c cartRetriever) retrieve(name, path string) error {
 	err := os.MkdirAll(filepath.Join(c.outputPath, path), 0666)
 	if err != nil {
 		return fmt.Errorf("cart retriever: couldn't create folder to hold files: %s", err)
@@ -55,25 +56,29 @@ func (c cartRetriever) Retrieve(name, path string) error {
 	return nil
 }
 
-func (c cartRetriever) downloadFile(path string, isHTML bool) error {
+func (c cartRetriever) downloadFile(cartPath string, isHTML bool) error {
 	ext := "js"
 	if isHTML {
 		ext = "html"
 	}
 
-	resp, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s.%s", c.repo, c.branch, path, path, ext))
+	fileName := cartPath + "." + ext
+
+	url := path.Join("raw.githubusercontent.com", c.repo, c.branch, cartPath, fileName)
+
+	resp, err := http.Get("https://" + url)
 	if err != nil {
-		return fmt.Errorf("cart retriever: couldn't get %s %s file: %s", path, ext, err)
+		return fmt.Errorf("cart retriever: couldn't get %s %s file: %s", cartPath, ext, err)
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("cart retriever: couldn't read %s %s file: %s", path, ext, err)
+		return fmt.Errorf("cart retriever: couldn't read %s %s file: %s", cartPath, ext, err)
 	}
 
-	err = os.WriteFile(filepath.Join(c.outputPath, path, path+"."+ext), data, 0666)
+	err = os.WriteFile(filepath.Join(c.outputPath, cartPath, fileName), data, 0666)
 	if err != nil {
-		return fmt.Errorf("cart retriever: couldn't write %s %s file: %s", path, ext, err)
+		return fmt.Errorf("cart retriever: couldn't write %s %s file: %s", cartPath, ext, err)
 	}
 
 	return nil

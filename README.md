@@ -43,4 +43,4 @@ The replacer follows these steps:
 Generated HTML from the fillers can itself hold placeholder elements. This allows for the projects filler to contain layout
 for all projects, including where the stardew filler should place it's generated mods list. Nifty!
 
-The update script should be run with a working directory of the scripts folder.
+The update script should be run with a working directory of the root of the repo.

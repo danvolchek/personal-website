@@ -1,4 +1,4 @@
-package main
+package generator
 
 import "golang.org/x/net/html"
 

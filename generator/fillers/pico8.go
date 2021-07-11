@@ -4,6 +4,7 @@ import (
 	"golang.org/x/net/html"
 	"gopkg.in/yaml.v2"
 	"os"
+	"path"
 )
 
 type cartData struct {
@@ -43,11 +44,11 @@ func NewPico8Filler(cartsPath, outputPath string) (*pico8Filler, error) {
 	}
 
 	for i, cart := range data.Carts {
-		err := retriever.Retrieve(cart.Name, cart.Path)
+		err := retriever.retrieve(cart.Name, cart.Path)
 		if err != nil {
 			return nil, err
 		}
-		data.Carts[i].Link = "/pico8/" + cart.Path
+		data.Carts[i].Link = path.Join("/", "pico8", cart.Path)
 	}
 
 	return &pico8Filler{
