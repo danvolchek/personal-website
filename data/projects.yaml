@@ -74,3 +74,15 @@
     It was fun and a great introduction to hardware (3d printing, Arduino), but ultimately ended up not being very practical.
 
     ![door hardware](https://raw.githubusercontent.com/danvolchek/door-unlocker/master/images/system_image.jpg)
+
+- id: wordle
+  name: Wordle solver
+  sourcecode: https://github.com/danvolchek/wordle
+  shortdescription: A solver for the popular game word game Wordle
+  longdescription: |
+    This is a program that solves [Wordles](https://www.powerlanguage.co.uk/wordle/). It chooses the best word at each guess by calculating the word which will reduce
+    the number of possible answers the most - i.e. the word with the highest entropy.
+
+    It's a parallel solver - it shards entropy calculation amongst all available logical cores to speed up calculation.
+
+    It usually gets the answer in 3 or 4 guesses.
