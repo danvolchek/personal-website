@@ -78,7 +78,7 @@
 - id: wordle
   name: Wordle solver
   sourcecode: https://github.com/danvolchek/wordle
-  shortdescription: A solver for the popular game word game Wordle
+  shortdescription: A solver for the popular word game Wordle
   longdescription: |
     This is a program that solves [Wordles](https://www.powerlanguage.co.uk/wordle/). It chooses the best word at each guess by calculating the word which will reduce
     the number of possible answers the most - i.e. the word with the highest entropy.
