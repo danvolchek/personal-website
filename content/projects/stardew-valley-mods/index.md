@@ -1,10 +1,9 @@
 ---
 title: 'Stardew Valley Mods'
-summary: Summary here, shown in various places.
-description: Description here, copy the summary.
+summary: I created 29 mods for Stadew Valley, a farm RPG.
+description: I created 29 mods for Stadew Valley, a farm RPG.
 date: 2022-10-28
 tags: [software]
-draft: false
 ---
 
 ## Code/downloads

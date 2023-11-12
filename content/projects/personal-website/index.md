@@ -4,7 +4,6 @@ summary: A website to host links, projects, and my blog.
 description: A website to host links, projects, and my blog.
 date: 2023-11-11
 tags: [software]
-draft: false
 ---
 
 ## Code
