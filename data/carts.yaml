@@ -1,6 +1,0 @@
-repo: danvolchek/pico-8
-branch: main
-carts:
-  - name: Beecells
-    description: Bee themed hexagonal minesweeper (incomplete)
-    path: hex

@@ -1,0 +1,14 @@
+# -- Markup --
+# These settings are required for the theme to function.
+
+goldmark:
+  renderer:
+    unsafe: true
+
+highlight:
+  noClasses: true
+  style: catppuccin-frappe
+
+tableOfContents:
+  startLevel: 2
+  endLevel: 4

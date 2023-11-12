@@ -1,0 +1,24 @@
+languageCode: en
+languageName: English
+weight: 1
+title: Dan Volchek
+
+params:
+  displayName: EN
+  isoCode: en
+  rtl: false
+  dateFormat: January 2, 2006
+  logo: img/logo_padded.png
+  description: Project website and blog.
+
+author:
+  name: Dan Volchek
+  image: img/logo.png
+  headline: Software Engineer
+  bio: Incredibly powerful
+  links:
+    - email: mailto:danvnad@gmail.com
+    - github: https://github.com/danvolchek
+    - linkedin: https://linkedin.com/in/dan-volchek/
+    - mastodon: https://mastodon.social/@danvolchek
+    - resume: /dan_volchek_resume.pdf

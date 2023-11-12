@@ -1,0 +1,120 @@
+# -- Theme Options --
+# These options control how the theme functions and allow you to
+# customise the display of your website.
+#
+# Refer to the theme docs for more details about each of these parameters.
+# https://blowfish.page/docs/configuration/#theme-parameters
+
+colorScheme: sunflower
+defaultAppearance: dark
+
+enableSearch: true
+enableCodeCopy: true
+
+# This underlines the active TOC section, but is buggy and doesn't underline
+# The right one
+smartTOC: false
+smartTOCHideUnfocusedChildren: false
+
+header:
+  layout: fixed
+
+footer:
+  showThemeAttribution: false
+  showAppearanceSwitcher: true # This actually shows in the header, oddly
+
+homepage:
+  # TODO: choose a layout
+  layout: profile # profile, hero, or background (need image for the latter two)
+  #homepageImage: "IMAGE.jpg" # used in: hero, and card
+
+  # Besides showRecent, this is a custom recent items implementation
+  # that allow showing diferent types of recent items in their own sections.
+  # It's powered by a modified recent articles implementation,
+  # which is based off of blowfish's default.
+  #
+  # See layouts/partials/recent-articles.
+  showRecent: true
+  recentItems:
+    - type: projects
+      count: 5
+      cardView: true
+      cardViewScreenWidth: false
+      showMoreLink: true
+      showMoreText: recent.more_projects
+    - type: blog
+      count: 5
+      cardView: false
+      cardViewScreenWidth: false
+      showMoreLink: true
+      showMoreText: recent.more_blogs
+
+  # TODO: choose a layout
+  layoutBackgroundBlur: true  # only used when layout equals background
+
+article:
+  showDate: true
+  showViews: false
+  showLikes: false
+  showDateUpdated: false
+  showAuthor: true
+  showHero: false
+  # heroStyle: "basic" # valid options: basic, big, background, thumbAndBackground
+  layoutBackgroundBlur: true
+  layoutBackgroundHeaderSpace: true
+  showBreadcrumbs: true
+  showDraftLabel: true
+  showEdit: false
+  editAppendPath: true
+  seriesOpened: false
+  showHeadingAnchors: true
+  showPagination: true
+  invertPagination: false
+  showReadingTime: true
+  showTableOfContents: true
+  showRelatedContent: false
+  showTaxonomies: true
+  showAuthorsBadges: false
+  showWordCount: true
+
+list:
+  showHero: false
+  heroStyle: "basic" # valid options: basic, big, background, thumbAndBackground
+  layoutBackgroundBlur: true  # only used when heroStyle equals background or thumbAndBackground
+  layoutBackgroundHeaderSpace: true # only used when heroStyle equals background
+  showBreadcrumbs: false
+  showSummary: true
+  showViews: false
+  showLikes: false
+  showTableOfContents: false
+  showCards: false
+  groupByYear: true
+  cardView: false
+  cardViewScreenWidth: false
+  constrainItemsWidth: false
+
+sitemap:
+  excludedKinds:
+    - taxonomy
+    - term
+
+taxonomy:
+  showTermCount: true
+  showHero: false
+  # heroStyle: "background" # valid options: basic, big, background, thumbAndBackground
+  showBreadcrumbs: false
+  showViews: false
+  showLikes: false
+  showTableOfContents: false
+  cardView: false
+
+term:
+  showHero: false
+  # heroStyle: "background" # valid options: basic, big, background, thumbAndBackground
+  showBreadcrumbs: false
+  showViews: false
+  showLikes: false
+  showTableOfContents: true
+  groupByYear: false
+  cardView: false
+  cardViewScreenWidth: false

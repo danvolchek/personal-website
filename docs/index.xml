@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Home on Dan Volchek</title>
+    <link>https://danvolchek.com/</link>
+    <description>Recent content in Home on Dan Volchek</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© 2023 Dan Volchek</copyright>
+    <lastBuildDate>Sat, 11 Nov 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danvolchek.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Personal Website</title>
+      <link>https://danvolchek.com/projects/personal-website/</link>
+      <pubDate>Sat, 11 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danvolchek.com/projects/personal-website/</guid>
+      <description>A website to host links, projects, and my blog.</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://danvolchek.com/projects/personal-website/featured.png" />
+    </item>
+    
+    <item>
+      <title>Stardew Valley Mods</title>
+      <link>https://danvolchek.com/projects/stardew-valley-mods/</link>
+      <pubDate>Fri, 28 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://danvolchek.com/projects/stardew-valley-mods/</guid>
+      <description>Summary here, shown in various places.</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://danvolchek.com/projects/stardew-valley-mods/featured.png" />
+    </item>
+    
+    <item>
+      <title>Placeholder blog post</title>
+      <link>https://danvolchek.com/blog/placeholder/</link>
+      <pubDate>Tue, 25 Jan 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://danvolchek.com/blog/placeholder/</guid>
+      <description>A placeholder! No posts yet!</description>
+      
+    </item>
+    
+  </channel>
+</rss>

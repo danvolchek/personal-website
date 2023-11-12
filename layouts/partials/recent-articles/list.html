@@ -1,0 +1,11 @@
+{{ $recentItem := index .page.Site.Params.homepage.recentItems .index }}
+
+{{ $count := $recentItem.count | default 5 }}
+{{ $type := $recentItem.type }}
+
+<section class="space-y-10 w-full">
+  {{ range first $count (where .page.Site.RegularPages "Type" "eq"
+  $type) }}
+  {{ partial "article-link/simple.html" . }}
+  {{ end }}
+</section>

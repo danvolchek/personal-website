@@ -1,0 +1,36 @@
+{{/*
+This is a custom recent items implementation
+that allow showing diferent types of recent items in their own sections.
+
+See config/_default/params.yml for the format.
+
+Notably, this doesn't use the paginator anymore because the paginator runs once
+and caches the results, but we want multiple different lists.
+*/}}
+{{ $page := . }}
+
+{{ range $index, $element := $page.Site.Params.homepage.recentItems }}
+  <h2 class="mt-8 text-2xl font-extrabold mb-10">{{ .type | title | emojify }}</h2>
+
+  {{ $arg := dict "index" $index "page" $page }}
+
+  {{ if and .cardView (not .cardViewScreenWidth) | default false }}
+    {{ partial "recent-articles/cardview.html" $arg }}
+  {{ else if and .cardView .cardViewScreenWidth | default false }}
+    {{ partial "recent-articles/cardview-fullwidth.html" $arg }}
+  {{ else }}
+    {{ partial "recent-articles/list.html" $arg }}
+  {{ end }}
+
+  {{ if .showMoreLink | default false }}
+  {{ $showMoreLinkDest := index . "showMoreLinkDest" | default (print "/" .type) }}
+  <div class="mt-10 flex justify-center">
+    <a href="{{ $showMoreLinkDest }}">
+      <button
+        class="bg-transparent hover:text-primary-500 prose dark:prose-invert font-semibold hover:text-white py-2 px-4 border border-primary-500 hover:border-transparent rounded">
+        {{ i18n $element.showMoreText | markdownify | emojify }}
+      </button>
+    </a>
+  </div>
+  {{ end }}
+{{ end }}
