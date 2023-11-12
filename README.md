@@ -32,3 +32,12 @@ To build a new version:
 ```
 hugo
 ```
+
+To update blowfish:
+```
+git submodule update --remote --merge
+```
+
+then do another build. Make sure to check that the blowfish overrides still work:
+ * assets/js/code.js to enable code copying
+ * layouts/partials/recent-articles for the home page sections
