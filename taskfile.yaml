@@ -3,7 +3,10 @@
 version: '3'
 
 includes:
-  common: "~/.config/development"
+  common:
+    taskfile: "~/.config/development"
+    vars:
+      DIFF_ARGS: "-- . :^docs" # Ignore generated output in diff
 
 tasks:
   dev:
