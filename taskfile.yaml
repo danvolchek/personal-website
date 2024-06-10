@@ -1,0 +1,29 @@
+# https://taskfile.dev/usage/
+
+version: '3'
+
+includes:
+  common: "~/.config/development"
+
+tasks:
+  dev:
+    cmds:
+      - hugo server
+  build:
+    cmds:
+      - hugo
+  
+  update-deps:
+    cmds:
+      - git submodule update --remote --merge
+      - task: build
+  
+  changes:
+    cmds:
+      - task: build
+      - task: common:changes
+
+  push:
+    cmds:
+      - task: build
+      - task: common:add-commit-push
