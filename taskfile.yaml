@@ -6,7 +6,7 @@ includes:
   common:
     taskfile: "~/.config/development"
     vars:
-      DIFF_ARGS: "-- . :^docs" # Ignore generated output in diff
+      DIFF_ARGS: "-- . :^docs :^resources" # Ignore generated output in diff
 
 tasks:
   dev:
