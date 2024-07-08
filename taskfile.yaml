@@ -12,6 +12,7 @@ tasks:
   dev:
     cmds:
       - hugo server
+
   build:
     cmds:
       - hugo
@@ -23,8 +24,9 @@ tasks:
   
   changes:
     cmds:
-      - task: build
       - task: common:changes
+        vars:
+          PRE_DISPLAY_TASKS: "build" # Run build before showing changes
 
   push:
     cmds:
